@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>🏈 Fantasy Weekly — Sleeper League Recap</title>
+<meta name="description" content="Automated Sleeper league recap: the good, the bad, the ugly, and next-week insights." />
+<style>
+  /* ===== Light, neutral theme with friendly accents ===== */
+  :root{
+    --bg:#f7f7f8; --ink:#111827; --muted:#6b7280; --card:#ffffff; --border:#e5e7eb;
+    --accent:#0ea5e9; --good:#16a34a; --bad:#ef4444; --ugly:#f59e0b; --link:#0369a1;
+    --chip:#eef2ff; --chip-ink:#3730a3;
+  }
+  @media (prefers-reduced-motion:no-preference){ :root{ --dur:650ms; --e:cubic-bezier(.22,.84,.35,1);} }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--link);text-decoration:none}
+  header{
+    position:sticky; top:0; z-index:10;
+    background:linear-gradient(180deg,#fff,rgba(255,255,255,.85));
+    backdrop-filter:saturate(1.2) blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:14px 16px}
+  h1{font-size:28px;margin:0 0 4px 0;display:flex;gap:8px;align-items:center}
+  .sub{color:var(--muted);font-size:14px}
+  .shimmer{position:relative;display:inline-block;padding-bottom:2px}
+  .shimmer:after{
+    content:"";position:absolute;left:0;right:0;bottom:-4px;height:3px;border-radius:2px;
+    background:linear-gradient(90deg,transparent,var(--accent),transparent);
+    opacity:.55;animation:shimmer 2.6s linear infinite;
+  }
+  @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+  /* Controls */
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 0}
+  input,button{
+    border:1px solid var(--border);background:#fff;color:var(--ink);
+    border-radius:10px;padding:10px 12px;font:inherit
+  }
+  button.primary{background:linear-gradient(180deg,#38bdf8,#0ea5e9);color:#fff;border:none;cursor:pointer}
+  button.ghost{background:#fff}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;border:1px solid var(--border);background:#fff;color:var(--muted)}
+  .status{color:var(--muted);font-size:13px;min-height:1em}
+
+  main{max-width:1100px;margin:18px auto;padding:0 16px}
+  .hdrRow{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid var(--border)}
+  .kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:10px 0 18px}
+  .box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+  .box .label{color:var(--muted);font-size:12px}
+  .box .value{font-size:22px;font-weight:700}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 1px 1px rgba(0,0,0,.02)}
+  .head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .match{font-weight:700;font-size:18px;display:flex;align-items:center;gap:8px}
+  .score{font-feature-settings:"tnum" 1;font-variant-numeric:tabular-nums;font-weight:800}
+  .tags{display:flex;gap:6px;flex-wrap:wrap}
+  .tag{display:inline-flex;align-items:center;gap:6px;background:#f9fafb;border:1px solid var(--border);border-radius:999px;padding:3px 10px;font-size:12px;color:var(--muted)}
+
+  .kpi-mini{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}
+  .mini{background:#fafafa;border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center}
+  .mini .label{color:var(--muted);font-size:12px}
+  .mini .value{font-size:18px;font-weight:700}
+
+  .section{margin-top:12px}
+  .section h4{margin:0 0 6px 0;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .good ul{border-left:3px solid var(--good);padding-left:10px;margin:6px 0}
+  .bad  ul{border-left:3px solid var(--bad); padding-left:10px;margin:6px 0}
+  .ugly ul{border-left:3px solid var(--ugly);padding-left:10px;margin:6px 0}
+  ul{padding-left:20px;margin:0}
+  li{margin:4px 0}
+
+  footer{color:var(--muted);text-align:center;padding:20px}
+
+  /* Animations */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+  .appear{animation:fadeUp var(--dur) var(--e) both}
+  .pulse .value{animation:pulse 2.6s var(--e) infinite}
+  .wobble{animation:wob 900ms ease both}
+  @keyframes wob{0%{transform:rotate(0)}30%{transform:rotate(-2deg)}60%{transform:rotate(2deg)}100%{transform:rotate(0)}}
+  .shake{animation:shake 750ms ease both}
+  @keyframes shake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
+
+  /* Confetti (emoji) */
+  .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:999}
+  .confetti span{position:absolute;font-size:20px;animation:float 1200ms linear forwards;will-change:transform,opacity}
+  @keyframes float{from{transform:translateY(0) rotate(0);opacity:1}to{transform:translateY(-120vh) rotate(720deg);opacity:0}}
+
+  .chip{background:var(--chip);color:var(--chip-ink);border:1px solid #e6e9ff;border-radius:999px;padding:2px 8px;font-size:12px}
+  .muted{color:var(--muted)}
+  .error{color:#b91c1c}
+</style>
+</head>
+
+<body>
+<header>
+  <div class="wrap">
+    <h1 class="appear">🏈 <span class="shimmer">Fantasy Football Weekly</span></h1>
+    <div class="sub">Sleeper recap — ✅ Good, ⚠️ Bad, 😬 Ugly, 🔥 PG Smack Talk, 🔍 Next Week</div>
+
+    <div class="controls">
+      <span class="pill">Week</span>
+      <button id="prev" class="ghost" title="Previous week">◀️</button>
+      <input id="week" type="number" min="1" max="18" style="width:82px" />
+      <button id="next" class="ghost" title="Next week">▶️</button>
+      <button id="go" class="primary">Generate</button>
+      <span id="status" class="status"></span>
+      <span class="pill">Smack Talk: <b>ON</b> 🔥</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="wrap">
+    <div class="hdrRow appear" id="leagueHeader"></div>
+    <div id="kpis" class="kpi appear"></div>
+    <div class="tags appear" id="weekBadges"></div>
+    <div id="matchups" class="grid"></div>
+  </section>
+</main>
+
+<div class="confetti" id="confetti"></div>
+
+<footer>
+  <div class="wrap">
+    <div>Powered by Sleeper’s read‑only public API. Bench = players − starters. Player dictionary cached for 24h.</div>
+    <div class="muted">Tip: Deep link like <code>?week=2</code>. League is preconfigured.</div>
+  </div>
+</footer>
+
+<script>
+/* ========= Config & Helpers ========= */
+const LEAGUE_ID = "1257480275340828672"; // Kevin’s league — embedded
+const qs = new URLSearchParams(location.search);
+const $ = s => document.querySelector(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = n => (n ?? 0).toLocaleString(undefined,{maximumFractionDigits:2});
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+const API = {
+  state: () => `https://api.sleeper.app/v1/state/nfl`,
+  league: id => `https://api.sleeper.app/v1/league/${id}`,
+  users: id => `https://api.sleeper.app/v1/league/${id}/users`,
+  rosters: id => `https://api.sleeper.app/v1/league/${id}/rosters`,
+  matchups: (id,w) => `https://api.sleeper.app/v1/league/${id}/matchups/${w}`,
+  players: () => `https://api.sleeper.app/v1/players/nfl`,
+  avatarThumb: id => `https://sleepercdn.com/avatars/thumbs/${id}`,
+  avatarFull: id => `https://sleepercdn.com/avatars/${id}`
+};
+
+async function fetchJson(url){ const r = await fetch(url,{cache:"no-store"}); if(!r.ok) throw new Error(`HTTP ${r.status} for ${url}`); return r.json(); }
+function playerName(dict, pid){
+  const p = dict[pid] || {};
+  if (p.first_name || p.last_name) return `${p.first_name||""} ${p.last_name||""}`.trim();
+  return p.full_name || p.search_full_name || p.last_name || pid;
+}
+function unique(arr){return Array.from(new Set(arr))}
+function showStatus(msg,kind=""){ const el=$("#status"); el.textContent=msg||""; el.className="status "+(kind||"") }
+
+/* ==== Players dictionary caching (24h) ==== */
+async function getPlayersDict(){
+  const key="sleeper_players_nfl", metaKey="sleeper_players_meta";
+  const meta = JSON.parse(localStorage.getItem(metaKey) || "null");
+  const now = Date.now();
+  if (meta && (now - meta.ts) < 24*60*60*1000){
+    try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch {}
+  }
+  const dict = await fetchJson(API.players());
+  localStorage.setItem(key, JSON.stringify(dict));
+  localStorage.setItem(metaKey, JSON.stringify({ts:now}));
+  return dict;
+}
+
+/* ========= Confetti (emoji) ========= */
+function confettiBlast(emojiSet=["🎉","🏈","⭐"], count=50){
+  const box=$("#confetti");
+  for(let i=0;i<count;i++){
+    const s=document.createElement("span");
+    s.textContent=emojiSet[Math.floor(Math.random()*emojiSet.length)];
+    s.style.left=(Math.random()*100)+"vw";
+    const d=800+Math.random()*1200;
+    s.style.bottom="-20px";
+    s.style.animationDuration=d+"ms";
+    s.style.transform=`translateY(0) rotate(${(Math.random()>.5?1:-1)*(360+Math.random()*360)}deg)`;
+    s.style.filter=`hue-rotate(${Math.random()*360}deg)`;
+    box.appendChild(s);
+    setTimeout(()=> box.removeChild(s), d+150);
+  }
+}
+
+/* ========= PG Smack Talk (friendly) ========= */
+function smack({winner, loser, margin, highPts, benchName, benchPts, dudName, dudPts}){
+  const lines = [];
+  if (winner && highPts){ lines.push(`🔥 <b>${winner}</b> dropped video‑game numbers at ${fmt(highPts)}. Scoreboard didn’t stand a chance.`); }
+  if (margin>=40){ lines.push(`💥 That’s a <b>${fmt(margin)}</b>-point haymaker. Somebody call the stat correction squad.`); }
+  if (benchName && benchPts>=15){ lines.push(`🧰 <b>${benchName}</b> chilling on the bench with ${fmt(benchPts)}… coach, we seeing this?`); }
+  if (dudName && dudPts<=5){ lines.push(`🧊 ${dudName} went on <i>clipboard duty</i> (${fmt(dudPts)}). Keep an eye on usage.`); }
+  if (!lines.length){ lines.push(`🤝 Tight game, clean lineups, minimal spice. Next week’s where the fireworks start.`); }
+  return lines;
+}
+
+/* ========= Core builder ========= */
+async function build(week){
+  try{
+    showStatus("Loading…");
+
+    // Fetch state for season/week info if not provided
+    const state = await fetchJson(API.state()); // { season, week, season_type, leg }
+    const w = week || state.week || 1;
+
+    const [league, users, rosters, matchups, playersDict] = await Promise.all([
+      fetchJson(API.league(LEAGUE_ID)),
+      fetchJson(API.users(LEAGUE_ID)),
+      fetchJson(API.rosters(LEAGUE_ID)),
+      fetchJson(API.matchups(LEAGUE_ID, w)),
+      getPlayersDict()
+    ]);
+
+    // Header with league avatar(s)
+    const avatars = users.slice(0,6).map(u => u.avatar ? `<img classarThumb(u.avatar)}` : ``).join("");
+    $("#leagueHeader").innerHTML = `
+      <div class="pill">League</div>
+      <div>
+        <h2 style="margin:4px 0 2px">${league.name || "Sleeper League"} — Week ${w}</h2>
+        <div class="muted">Season ${league.season} • ${league.season_type || "regular"} • Teams: ${league.total_rosters || rosters.length}</div>
+      </div>
+      <div class="hdrRow" style="margin-left:auto">${avatars}</div>
+    `;
+
+    // Maps
+    const userById = Object.fromEntries(users.map(u => [u.user_id, u]));
+    const rosterById = Object.fromEntries(rosters.map(r => [String(r.roster_id), r]));
+    const teamMeta = {};
+    for(const r of rosters){
+      const u = userById[r.owner_id] || {};
+      const team_name = (u.metadata && (u.metadata.team_name || u.metadata.nickname)) || u.display_name || u.username || `Team ${r.roster_id}`;
+      teamMeta[r.roster_id] = { team_name, avatar: u.avatar };
+    }
+
+    // KPIs
+    const teamObjs = matchups.map(m => ({ roster_id:m.roster_id, points:m.points||0 }));
+    const scores = teamObjs.map(t => t.points);
+    const high = Math.max(...scores), low = Math.min(...scores), avg = scores.reduce((a,b)=>a+b,0)/(scores.length||1);
+    $("#kpis").innerHTML = `
+      <div class="box pulse"><div class="label">High Score</div><div class="value">🔥 ${fmt(high)}</div></div>
+      <div class="box pulse"><div class="label">Low Score</div><div class="value">🧊 ${fmt(low)}</div></div>
+      <div class="box pulse"><div class="label">League Avg</div><div class="value">📊 ${fmt(avg)}</div></div>
+      <div class="box"><div class="label">Matchups</div><div class="value">🧮 ${new Set(matchups.map(m=>m.matchup_id)).size}</div></div>
+    `;
+
+    $("#weekBadges").innerHTML = `
+      <span class="chip">Week ${w}</span>
+      <span class="chip">Light Theme ✨</span>
+      <span class="chip">Animations On</span>
+      <span class="chip">Smack Talk: PG 🔥</span>
+    `;
+
+    // Group by matchup_id
+    const byMatchup = {};
+    for(const m of matchups){ (byMatchup[m.matchup_id] ??= []).push(m); }
+
+    const matchupIds = Object.keys(byMatchup).sort((a,b)=>a-b);
+    const container = $("#matchups"); container.innerHTML = "";
+
+    let confettiOnce = false;
+
+    for(const id of matchupIds){
+      const pair = byMatchup[id];  // typically 2 teams
+      const A = pair?.[0], B = pair?.[1];
+      const teamsCards = [A,B].filter(Boolean).map(t => {
+        const starters = unique(t.starters || []);
+        const all = unique(t.players || []);
+        const bench = all.filter(p => !new Set(starters).has(p));
+        const pp = t.players_points || {}; // per‑player points (when present)
+        const sum = ids => ids.reduce((a,p)=>a+(pp[p]||0),0);
+        const startersPts = sum(starters);
+        const benchPts = sum(bench);
+
+        const starterBreakdown = starters.map(pid => ({pid, pts:pp[pid]||0})).sort((x,y)=>y.pts-x.pts);
+        const mvp = starterBreakdown[0];
+        const dud = starterBreakdown[starterBreakdown.length-1];
+        const benchBreakdown = bench.map(pid => ({pid, pts:pp[pid]||0})).sort((x,y)=>y.pts-x.pts);
+        const benchMVP = benchBreakdown[0];
+
+        const meta = teamMeta[t.roster_id] || {team_name:"Unknown"};
+        return {
+          team_name: meta.team_name, avatar: meta.avatar,
+          points: t.points ?? startersPts, startersPts, benchPts, mvp, dud, benchMVP
+        };
+      });
+
+      const [t1, t2] = teamsCards;
+      const title = t2 ? `${t1.team_name} vs ${t2.team_name}` : `${t1.team_name} (solo)`;
+      const highTeam = t2 ? (t1.points >= t2.points ? t1 : t2) : t1;
+      const lowTeam  = t2 ? (t1.points >= t2.points ? t2 : t1) : null;
+      const margin = t2 ? Math.abs((t1.points||0)-(t2.points||0)) : 0;
+
+      // Smack talk (PG)
+      const smackLines = smack({
+        winner: highTeam?.team_name,
+        loser: lowTeam?.team_name,
+        margin,
+        highPts: highTeam?.points,
+        benchName: (t1?.benchMVP?.pid ? playerName(playersDict, t1.benchMVP.pid) : (t2?.benchMVP?.pid ? playerName(playersDict, t2.benchMVP.pid) : null)),
+        benchPts: (t1?.benchMVP?.pts || t2?.benchMVP?.pts || 0),
+        dudName: (lowTeam?.dud?.pid ? playerName(playersDict, lowTeam.dud.pid) : null),
+        dudPts: (lowTeam?.dud?.pts || 0)
+      });
+
+      // Confetti for blowout/high score
+      if (!confettiOnce && (margin>=40 || highTeam.points===high)){
+        confettiOnce = true;
+        setTimeout(()=> confettiBlast(["🎉","🏈","💥","⭐"], 60), 200);
+      }
+
+      const card = document.createElement("div");
+      card.className = "card appear";
+      card.style.animationDelay = (Math.random()*180)+"ms";
+
+      const avatarImg = t1?.avatar ? `${API.avatarThumb(t1.avatar)}` : "";
+      const avatarImg2= t2?.avatar ? `${API.avatarThumb(t2.avatar)}` : "";
+
+      const good = [
+        `✅ <b>${highTeam.team_name}</b> — ${fmt(highTeam.points)} pts (MVP: ${highTeam.mvp ? playerName(playersDict, highTeam.mvp.pid) : "—"}${highTeam.mvp?` · ${fmt(highTeam.mvp.pts)} pts`:""})`
+      ];
+      const bad = (lowTeam)
+        ? [`⚠️ <b>${lowTeam.team_name}</b> — ${fmt(lowTeam.points)} pts (Lowest starter: ${lowTeam.dud ? playerName(playersDict, lowTeam.dud.pid) : "—"}${lowTeam.dud?` · ${fmt(lowTeam.dud.pts)} pts`:""})`]
+        : [`⚠️ No opponent — limited signal.`];
+
+      const ugly = [];
+      if (margin >= 40) ugly.push(`😬 Blowout: ${fmt(margin)}‑pt margin.`);
+      if (t1 && t2){
+        if ((t1.benchPts||0) > 50 || (t2.benchPts||0) > 50){
+          const name = (t1.benchPts > t2.benchPts) ? t1.team_name : t2.team_name;
+          ugly.push(`😬 ${name} left a treasure chest on the bench.`);
+        }
+      }
+      if (!ugly.length) ugly.push(`😮‍💨 No major uglies — parity week.`);
+
+      const consider = [];
+      if (t1?.benchMVP && (t1.benchMVP.pts > (t1.dud?.pts||0))) {
+        consider.push(`🔄 ${t1.team_name}: audition <b>${playerName(playersDict, t1.benchMVP.pid)}</b> (${fmt(t1.benchMVP.pts)} pts) for next week.`);
+      }
+      if (t2?.benchMVP && (t2.benchMVP.pts > (t2.dud?.pts||0))) {
+        consider.push(`🔄 ${t2.team_name}: give <b>${playerName(playersDict, t2.benchMVP.pid)}</b> (${fmt(t2.benchMVP.pts)} pts) a look.`);
+      }
+      if (!consider.length) consider.push(`📌 Lineups look dialed; monitor injuries/bye weeks.`);
+
+      card.innerHTML = `
+        <div class="head ${margin>=40?'shake':''}">
+          <div class="match">🆚 ${avatarImg} ${title} ${avatarImg2}</div>
+          <div class="score ${highTeam.points===high?'wobble':''}">${t2 ? `${fmt(t1.points)} — ${fmt(t2.points)}` : `${fmt(t1.points)} pts`}</div>
+        </div>
+
+        <div class="kpi-mini">
+          <div class="mini"><div class="label">${t1.team_name} starters</div><div class="value">💪 ${fmt(t1.startersPts)}</div></div>
+          <div class="mini"><div class="label">${t1.team_name} bench</div><div class="value">🧰 ${fmt(t1.benchPts)}</div></div>
+          ${t2 ? `
+          <div class="mini"><div class="label">${t2.team_name} starters</div><div class="value">💪 ${fmt(t2.startersPts)}</div></div>
+          <div class="mini"><div class="label">${t2.team_name} bench</div><div class="value">🧰 ${fmt(t2.benchPts)}</div></div>` : `
+          <div class="mini"><div class="label">Margin</div><div class="value">—</div></div>
+          <div class="mini"><div class="label">—</div><div class="value">—</div></div>`}
+        </div>
+
+        <div class="tags">
+          ${smackLines.map(s=>`<span class="tag">${s}</span>`).join("")}
+        </div>
+
+        <div class="section good">
+          <h4>✅ The Good</h4>
+          <ul>${good.map(x=>`<li>${x}</li>`).join("")}</ul>
+        </div>
+        <div class="section bad">
+          <h4>⚠️ The Bad</h4>
+          <ul>${bad.map(x=>`<li>${x}</li>`).join("")}</ul>
+        </div>
+        <div class="section ugly">
+          <h4>😬 The Ugly</h4>
+          <ul>${ugly.map(x=>`<li>${x}</li>`).join("")}</ul>
+        </div>
+        <div class="section">
+          <h4>🔍 Things to Consider Next Week</h4>
+          <ul>${consider.map(x=>`<li>${x}</li>`).join("")}</ul>
+        </div>
+      `;
+      $("#matchups").appendChild(card);
+    }
+
+    showStatus("Done.");
+  }catch(err){
+    console.error(err);
+    showStatus(err.message, "error");
+  }
+}
+
+/* ========= Wire up UI ========= */
+(async function init(){
+  // Auto-detect week unless ?week is provided
+  const urlWeek = Number(qs.get("week") || "");
+  let initialWeek = urlWeek || 0;
+  if (!initialWeek){
+    try {
+      const state = await fetchJson(API.state()); // {week, season, season_type}
+      initialWeek = state.week || 1;
+    } catch { initialWeek = 1; }
+  }
+  $("#week").value = initialWeek;
+  $("#go").addEventListener("click", ()=>{
+    const wk = clamp(Number($("#week").value||1), 1, 18);
+    const u = new URL(location.href); u.searchParams.set("week", String(wk)); history.replaceState(null,"",u.toString());
+    build(wk);
+  });
+  $("#prev").addEventListener("click", ()=> { $("#week").value = clamp(Number($("#week").value||1)-1,1,18); $("#go").click(); });
+  $("#next").addEventListener("click", ()=> { $("#week").value = clamp(Number($("#week").value||1)+1,1,18); $("#go").click(); });
+  // Run
+  $("#go").click();
+})();
+</script>
+</body>
+</html>
