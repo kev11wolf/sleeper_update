@@ -1,0 +1,41 @@
+name: Build Fantasy Weekly
+
+on:
+  schedule:
+    - cron: "0 12 * * TUE"   # Tuesdays 12:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # allow commit and push
+      issues: write         # (optional) allow auto-close notes issues
+    env:
+      # Configure optional features
+      NOTES_SOURCE: "issues"     # "files" to read notes/week-<n>.md instead
+      REPO_SLUG: ${{ github.repository }}
+      AUTO_CLOSE_ISSUES: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build weekly HTML
+        run: node scripts/build-weekly.mjs
+
+      - name: Commit & push changes
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html archive/ data/
+          if ! git diff --staged --quiet; then
+            git commit -m "Auto-build: Fantasy Weekly"
+            git push
+          else
+            echo "No changes to commit."
+          fi
