@@ -1,0 +1,26 @@
+name: Weekly Notes
+description: Add commissioner notes, smack talk, and insights for this week.
+title: "Week <WEEK> Notes"
+labels: ["weekly-notes"]
+body:
+  - type: input
+    id: week
+    attributes:
+      label: Week Number
+      description: Which week are these notes for?
+      placeholder: e.g., 3
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes (Markdown)
+      description: Paste the text Copilot gave you here—smack talk, insights, summaries.
+      placeholder: |
+        ## Quick Hits
+        - Statement 1
+        - Statement 2
+
+        ## Smack Talk
+        - Line 1
+        - Line 2
+    validations:
+      required: true
