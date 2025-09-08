@@ -21,17 +21,4 @@
       }
     }
   }
-},
-"ai prompt":"yes, update each of these placeholders with interesting facts about each match up including good picks, bad breaks, interesting choices, and noteable injuries. the more smack talk at spicy level the better too.  here’s the json from my matchup json for reference. use current nfl week 1 2025 season data. provide an updated summaries.json with info populated for me to replace my data with.",
-"_comment placeholder": "{
-  "summaries": {
-    "1": { // Week 1
-      "1": "Placeholder for Week 1, Matchup 1 summary text",
-      "2": "Placeholder for Week 1, Matchup 2 summary text",
-      "3": "Placeholder for Week 1, Matchup 3 summary text",
-      "4": "Placeholder for Week 1, Matchup 4 summary text",
-      "5": "Placeholder for Week 1, Matchup 5 summary text",
-      "6": "Placeholder for Week 1, Matchup 6 summary text"
-    }
-  }
-}"
+}
