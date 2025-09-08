@@ -1,12 +1,37 @@
-// summaries.json (placeholder structure)
 {
   "summaries": {
     "1": { // Week 1
-      "1": "Placeholder for Week 1, Matchup 1 summary text",
-      "2": "Placeholder for Week 1, Matchup 2 summary text"
-    },
-    "2": { // Week 2
-      "1": "Placeholder for Week 2, Matchup 1 summary text"
+      "1": {
+        "summary": "In a battle of the ages, **MayeHisCaffBeFine** overcame **BurrowBoiSeason** with a score of 135.88 to 83.92. BigBoiSeason might be regretting his decision to start a second-string running back. With Aaron Rodgers throwing picks and the Packers defense slipping, they simply couldn't compete! Maybe next week, BurrowBoi?"
+      },
+      "2": {
+        "summary": "**Koo my Warren till I Kupp** stormed past **Nacua Matata** with an impressive 124.62 score, showcasing McCaffrey's dazzling moves and Kupp’s route-running wizardry. On the flip side, Nacua Matata was derailed by critical injuries; losing a starting wide receiver early! Ouch! Watch out for Koo next week!"
+      },
+      "3": {
+        "summary": "**Ready 4 Cancun** flexed their muscles over **MasterBater** with a dominant 99.28 points versus 77.86. With an all-star lineup, Cancun's squad picked apart a defense that seemed to forget this was a competitive match. MasterBater—better luck somewhere else next week!”
+      },
+      "4": {
+        "summary": "**Champ** snagged victory through grit against **In CEST zone**, scoring 107.58 to 88.12. The performance by Mahomes was electric, while ItalianGardettos thought starting a defense against the Chiefs was a smart move. Spoiler: It wasn't! Expect Champ to ride this momentum into next week."
+      },
+      "5": {
+        "summary": "**Kamara Sutra** proved to be the team to beat, crushing **Droppin' a Deuce** 131.52 to 96.78. BiggoJohnson’s squad had all the right picks, while a questionable bench decision cost Deuce the game. Keep an eye on Kamara—it looks like he’s back to his dominant self!"
+      },
+      "6": {
+        "summary": "**Chasing Wittle Kyler** took down **Gibb me dat** 96.22 to 86.34, but it was a hard-fought battle! Injury woes plagued Gibb throughout the match, leading to subpar performances. Kyler’s late-game heroics snatched the win, but they need to tighten up their roster if they expect to compete!”
+      }
     }
   }
-}
+},
+"ai prompt":"yes, update each of these placeholders with interesting facts about each match up including good picks, bad breaks, interesting choices, and noteable injuries. the more smack talk at spicy level the better too.  here’s the json from my matchup json for reference. use current nfl week 1 2025 season data. provide an updated summaries.json with info populated for me to replace my data with.",
+"_comment placeholder": "{
+  "summaries": {
+    "1": { // Week 1
+      "1": "Placeholder for Week 1, Matchup 1 summary text",
+      "2": "Placeholder for Week 1, Matchup 2 summary text",
+      "3": "Placeholder for Week 1, Matchup 3 summary text",
+      "4": "Placeholder for Week 1, Matchup 4 summary text",
+      "5": "Placeholder for Week 1, Matchup 5 summary text",
+      "6": "Placeholder for Week 1, Matchup 6 summary text"
+    }
+  }
+}"
