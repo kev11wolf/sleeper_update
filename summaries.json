@@ -1,1 +1,12 @@
-
+// summaries.json (placeholder structure)
+{
+  "summaries": {
+    "1": { // Week 1
+      "1": "Placeholder for Week 1, Matchup 1 summary text",
+      "2": "Placeholder for Week 1, Matchup 2 summary text"
+    },
+    "2": { // Week 2
+      "1": "Placeholder for Week 2, Matchup 1 summary text"
+    }
+  }
+}
