@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Sleeper Matchups — League 1257480275340828672</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{
+      --bg:#0b0f14; --panel:#121822; --text:#e6eef8; --muted:#9fb3c8;
+      --accent:#4aa3ff; --ok:#2ecc71; --warn:#f39c12; --danger:#e74c3c; --chip:#223045;
+      --code:#11161f; --border:#1f2a38;
+    }
+    html,body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    header{padding:20px 16px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#0b0f14,#0d121a)}
+    h1{margin:0;font-size:18px}
+    .sub{color:var(--muted);font-size:13px;margin-top:4px}
+    main{padding:16px;max-width:1200px;margin:0 auto}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+    button,.btn {
+      appearance:none;border:1px solid var(--border);background:var(--panel);color:var(--text);
+      padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600
+    }
+    button:hover{border-color:var(--accent);box-shadow:0 0 0 3px rgba(74,163,255,.15)}
+    .pill{background:var(--chip);border:1px solid var(--border);padding:4px 8px;border-radius:999px;color:var(--muted)}
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px}
+    details{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--panel)}
+    summary{cursor:pointer;padding:12px 14px;font-weight:700;background:rgba(255,255,255,0.02)}
+    summary:hover{background:rgba(255,255,255,0.05)}
+    .wk{padding:10px 12px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+    th{color:var(--muted);font-weight:700;text-align:left;position:sticky;top:0;background:var(--panel);z-index:1}
+    .team{display:flex;gap:8px;align-items:center}
+    .pts{font-weight:800}
+    .win{color:var(--ok)}
+    .tie{color:var(--warn)}
+    .err{color:var(--danger);font-weight:700}
+    pre{background:var(--code);border:1px solid var(--border);border-radius:10px;padding:12px;overflow:auto;color:#d7e3f4}
+    small{color:var(--muted)}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    .matchup-row{cursor:pointer}
+    .matchup-summary{background:rgba(255,255,255,0.02)}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Matchups — Sleeper League <span class="mono">1257480275340828672</span></h1>
+    <div class="sub" id="subtitle">Loading current NFL week & league metadata…</div>
+  </header>
+
+  <main>
+    <div class="row">
+      <button id="refreshBtn">🔄 Refresh</button>
+      <button id="downloadJsonBtn">⬇️ Download JSON</button>
+      <button id="downloadCsvBtn">⬇️ Download CSV</button>
+      <span class="pill" id="metaPill">Season: — · Week: —</span>
+      <span class="pill" id="countPill">Matchups: —</span>
+    </div>
+
+    <div id="errors" class="card" style="display:none"></div>
+
+    <!-- Moved the Past Week's NFL Results card above the matchups -->
+    <div class="card" style="margin-top:24px;">
+      <h3>Past Week's NFL Results</h3>
+      <p>
+        Here is where you can place your static text update on the past week's NFL results. Make any notes or highlights you'd like to share!
+      </p>
+    </div>
+
+    <div id="weeksContainer" class="stack"></div>
+
+    <!-- Existing hidden raw JSON display and tips (unchanged but hidden) -->
+    <h3 style="margin-top:24px; display:none;">Raw (combined) JSON</h3>
+    <pre id="raw" aria-live="polite" style="display:none;">—</pre>
+    <p style="display:none;">
+      <small>
+        Tips: Points show any commissioner override when present (<span class="mono">custom_points</span>) otherwise the normal total (<span class="mono">points</span>). Starters and players (per team) are preserved in the JSON export.
+      </small>
+    </p>
+
+  </main>
+
+  <script>
+  (function () {
+    const LEAGUE_ID = "1257480275340828672";
+    const BASE = "https://api.sleeper.app/v1";
+    // URL to your JSON file containing matchup summaries
+    // Adjust as needed to point to your own JSON file
+    const SUMMARY_JSON_URL = "summaries.json";
+
+    let summariesData = {};
+
+    // Fetch matchup summaries from external JSON.
+    // The expected JSON structure is something like:
+    // {
+    //   "summaries": {
+    //     "1": {
+    //       "1": "Text for Week 1, Matchup 1 summary",
+    //       "2": "Week 1, Matchup 2 summary..."
+    //     },
+    //     "2": { ... }
+    //   }
+    // }
+    async function fetchSummaries() {
+      try {
+        const res = await fetch(SUMMARY_JSON_URL);
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        const data = await res.json();
+        return data;
+      } catch (err) {
+        console.warn("Could not fetch summaries JSON:", err);
+        return { summaries: {} };
+      }
+    }
+
+    const els = {
+      subtitle: document.getElementById("subtitle"),
+      metaPill: document.getElementById("metaPill"),
+      countPill: document.getElementById("countPill"),
+      weeksContainer: document.getElementById("weeksContainer"),
+      raw: document.getElementById("raw"),
+      errors: document.getElementById("errors"),
+      refreshBtn: document.getElementById("refreshBtn"),
+      downloadJsonBtn: document.getElementById("downloadJsonBtn"),
+      downloadCsvBtn: document.getElementById("downloadCsvBtn"),
+    };
+
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+    function fmt(n) {
+      if (n === null || n === undefined) return "—";
+      return Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 });
+    }
+
+    // Build CSV from flattened rows
+    function toCSV(rows) {
+      const headers = Object.keys(rows[0] || {});
+      const escape = (val) => {
+        const s = (val ?? "").toString();
+        if (s.includes('"') || s.includes(',') || s.includes('\n')) {
+          return `"${s.replace(/"/g, '""')}"`;
+        }
+        return s;
+      };
+      return [headers.join(","), ...rows.map(r => headers.map(h => escape(r[h])).join(","))].join("\n");
+    }
+
+    // File download helper
+    function download(name, mime, text) {
+      const blob = new Blob([text], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click();
+      URL.revokeObjectURL(url); a.remove();
+    }
+
+    function showError(html) {
+      els.errors.style.display = "block";
+      els.errors.innerHTML = html;
+    }
+
+    function clearError() {
+      els.errors.style.display = "none";
+      els.errors.textContent = "";
+    }
+
+    async function fetchJson(url, opts={}) {
+      // Add simple retry for transient issues
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          const res = await fetch(url, { cache: "no-cache", ...opts });
+          if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+          return await res.json();
+        } catch (err) {
+          if (attempt === 3) throw err;
+          await sleep(250 * attempt);
+        }
+      }
+    }
+
+    function deriveTeamName(user) {
+      // Prefer custom team_name if present, else display_name, else username, else fallback
+      const meta = user?.metadata || {};
+      const preferred = meta.team_name || meta.team_name_display || meta.team_name_full;
+      return preferred || user?.display_name || user?.username || "Unknown Team";
+    }
+
+    function effectivePoints(m) {
+      // Prefer commissioner override if present
+      if (m.custom_points !== null && m.custom_points !== undefined) return m.custom_points;
+      return m.points ?? 0;
+    }
+
+    function flattenForCsv(allMatchups) {
+      // Each team as its own row; also compute winner flag per matchup_id
+      const rows = [];
+      for (const m of allMatchups) {
+        const highest = Math.max(...m.teams.map(t => t.points ?? 0));
+        const winners = m.teams.filter(t => (t.points ?? 0) === highest).map(t => t.roster_id);
+        for (const t of m.teams) {
+          const bench = (t.players || []).filter(p => !(t.starters || []).includes(p));
+          rows.push({
+            season: m.season,
+            week: m.week,
+            matchup_id: m.matchup_id,
+            roster_id: t.roster_id,
+            team_name: t.team_name,
+            owner_display: t.owner_display,
+            points: t.points ?? "",
+            is_winner: winners.includes(t.roster_id) && winners.length === 1 ? "TRUE"
+                       : winners.includes(t.roster_id) && winners.length > 1 ? "TIE" : "FALSE",
+            starters: (t.starters || []).join(";"),
+            players: (t.players || []).join(";"),
+            bench: bench.join(";")
+          });
+        }
+      }
+      return rows;
+    }
+
+    function renderWeeks(grouped, allSummaries) {
+      els.weeksContainer.innerHTML = "";
+      const weeks = Object.keys(grouped).map(n => Number(n)).sort((a,b) => a-b);
+      weeks.forEach(week => {
+        const list = grouped[week];
+        const details = document.createElement("details");
+        details.open = true;
+        const summary = document.createElement("summary");
+        summary.innerHTML = `Week ${week} — ${list.length} matchup${list.length !== 1 ? "s" : ""}`;
+        details.appendChild(summary);
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "wk";
+
+        const table = document.createElement("table");
+        const thead = document.createElement("thead");
+        thead.innerHTML = `
+          <tr>
+            <th style="width:90px">Matchup</th>
+            <th>Team A</th>
+            <th style="width:110px">Pts</th>
+            <th>Team B</th>
+            <th style="width:110px">Pts</th>
+            <th style="width:120px">Winner</th>
+          </tr>`;
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        for (const m of list) {
+          // Sort consistently by roster_id
+          const teams = [...m.teams].sort((a,b) => a.roster_id - b.roster_id);
+          const a = teams[0], b = teams[1];
+          const moreTeams = teams.length > 2;
+          const highest = Math.max(...teams.map(t => t.points ?? 0));
+          const winners = teams.filter(t => (t.points ?? 0) === highest);
+          const isTie = winners.length > 1;
+
+          // Create main matchup row
+          const tr = document.createElement("tr");
+          tr.classList.add("matchup-row");
+          tr.onclick = function() {
+            // Toggle the next row which contains the summary
+            const nextRow = tr.nextElementSibling;
+            if (nextRow && nextRow.classList.contains("matchup-summary")) {
+              nextRow.style.display = nextRow.style.display === "table-row" ? "none" : "table-row";
+            }
+          };
+
+          const winnerText = isTie
+            ? `<span class="tie">Tie (${fmt(highest)})</span>`
+            : `<span class="win">${winners[0]?.team_name || "—"}</span>`;
+
+          tr.innerHTML = `
+            <td class="mono">#${m.matchup_id}</td>
+            <td class="team">${a ? a.team_name : "—"}<br><small class="muted">${a?.owner_display ?? ""}</small></td>
+            <td class="pts">${a ? fmt(a.points) : "—"}</td>
+            <td class="team">${b ? b.team_name : (moreTeams ? "(3+ team matchup)" : "—")}<br><small class="muted">${b?.owner_display ?? ""}</small></td>
+            <td class="pts">${b ? fmt(b.points) : (moreTeams ? "—" : "—")}</td>
+            <td>${winnerText}</td>
+          `;
+
+          // Create the summary row (initially hidden)
+          const summaryRow = document.createElement("tr");
+          summaryRow.classList.add("matchup-summary");
+          summaryRow.style.display = "none";
+          const summaryCell = document.createElement("td");
+          summaryCell.colSpan = 6;
+          // Pull a summary string from external JSON or use placeholder
+          const summaryText = allSummaries?.[week]?.[m.matchup_id] || "Placeholder matchup summary text goes here.";
+          summaryCell.innerHTML = `<p style="margin:8px 0;">${summaryText}</p>`;
+          summaryRow.appendChild(summaryCell);
+
+          tbody.appendChild(tr);
+
+          // If more than 2 teams in a matchup, append that mini explanatory row
+          if (moreTeams) {
+            const tr2 = document.createElement("tr");
+            const col = document.createElement("td");
+            col.colSpan = 6;
+            const items = teams.map(t => `${t.team_name} (${fmt(t.points)})`).join(" · ");
+            col.innerHTML = `<small>Multi-team matchup: ${items}</small>`;
+            tr2.appendChild(col);
+            tbody.appendChild(tr2);
+          }
+
+          // Finally, we append the summary row
+          tbody.appendChild(summaryRow);
+        }
+
+        table.appendChild(tbody);
+        wrapper.appendChild(table);
+        details.appendChild(wrapper);
+        els.weeksContainer.appendChild(details);
+      });
+    }
+
+    async function load() {
+      clearError();
+      els.subtitle.textContent = "Fetching state, league users & rosters…";
+      els.raw.textContent = "Loading…";
+
+      try {
+        // Fetch external matchup summaries from JSON
+        summariesData = await fetchSummaries();
+
+        // 1) Get current NFL state (season + current week)
+        const state = await fetchJson(`${BASE}/state/nfl`);
+        const { season, season_type, week } = state || {};
+        els.metaPill.textContent = `Season: ${season ?? "—"} · Week: ${week ?? "—"} (${season_type || "—"})`;
+        if (!week || week < 1) {
+          els.subtitle.textContent = `NFL season state loaded. Current week returned as ${week}. No regular-season matchups to fetch yet.`;
+          els.raw.textContent = "[]";
+          return;
+        }
+
+        // 2) Users & Rosters to map roster_id -> owner display + team name
+        const [users, rosters] = await Promise.all([
+          fetchJson(`${BASE}/league/${LEAGUE_ID}/users`),
+          fetchJson(`${BASE}/league/${LEAGUE_ID}/rosters`)
+        ]);
+
+        const userById = new Map((users || []).map(u => [u.user_id, u]));
+        const rosterToUser = new Map((rosters || []).map(r => [r.roster_id, r.owner_id]));
+        const nameByRoster = new Map();
+        const ownerDisplayByRoster = new Map();
+
+        for (const [rid, uid] of rosterToUser.entries()) {
+          const user = userById.get(uid);
+          nameByRoster.set(rid, deriveTeamName(user));
+          ownerDisplayByRoster.set(rid, user?.display_name || user?.username || "Unknown Manager");
+        }
+
+        els.subtitle.textContent = `Fetching matchups for Weeks 1 → ${week}…`;
+
+        // 3) Fetch all matchups from Week 1 to current week
+        const weeks = Array.from({ length: week }, (_, i) => i + 1);
+
+        // Parallelize with moderate concurrency (avoid hammering)
+        const results = [];
+        const CONCURRENCY = 4;
+        let i = 0;
+        async function worker() {
+          while (i < weeks.length) {
+            const myIndex = i++;
+            const wk = weeks[myIndex];
+            const data = await fetchJson(`${BASE}/league/${LEAGUE_ID}/matchups/${wk}`);
+            results.push({ week: wk, data });
+            // small delay for politeness
+            await sleep(40);
+          }
+        }
+        await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+        results.sort((a,b) => a.week - b.week);
+
+        // 4) Normalize into combined list of matchup objects (group by matchup_id)
+        const combined = [];
+        for (const { week: wk, data } of results) {
+          // Each item is a team result with roster_id + matchup_id
+          const groups = new Map();
+          for (const itm of (data || [])) {
+            const mid = itm.matchup_id ?? -1;
+            if (!groups.has(mid)) groups.set(mid, []);
+            groups.get(mid).push(itm);
+          }
+
+          for (const [mid, arr] of groups.entries()) {
+            const teams = arr.map(t => {
+              const rid = t.roster_id;
+              const pts = effectivePoints(t);
+              return {
+                roster_id: rid,
+                team_name: nameByRoster.get(rid) || `Roster ${rid}`,
+                owner_display: ownerDisplayByRoster.get(rid) || "",
+                points: typeof pts === "number" ? Math.round(pts * 100) / 100 : pts,
+                starters: t.starters || [],
+                players: t.players || []
+              };
+            });
+
+            // Compute winners (may be tie)
+            const top = Math.max(...teams.map(x => x.points ?? 0));
+            const winners = teams.filter(x => (x.points ?? 0) === top).map(x => x.roster_id);
+
+            combined.push({
+              season,
+              week: wk,
+              matchup_id: mid,
+              teams,
+              winner_roster_ids: winners
+            });
+          }
+        }
+
+        // 5) UI render + exports
+        const groupedByWeek = combined.reduce((acc, m) => {
+          (acc[m.week] ||= []).push(m);
+          return acc;
+        }, {});
+        for (const wk in groupedByWeek) {
+          groupedByWeek[wk].sort((a,b) => (a.matchup_id ?? 0) - (b.matchup_id ?? 0));
+        }
+
+        // Pass summaries data to renderWeeks
+        renderWeeks(groupedByWeek, summariesData.summaries);
+
+        els.countPill.textContent = `Matchups: ${combined.length}`;
+        els.raw.textContent = JSON.stringify(combined, null, 2);
+        els.subtitle.textContent = `Loaded ${combined.length} matchup rows from Week 1 → ${week}.`;
+
+        // Hook up download buttons for JSON & CSV
+        els.downloadJsonBtn.onclick = () => download(
+          `sleeper_matchups_${season}_through_w${week}.json`,
+          "application/json",
+          JSON.stringify(combined, null, 2)
+        );
+
+        const csvRows = flattenForCsv(combined);
+        els.downloadCsvBtn.onclick = () => download(
+          `sleeper_matchups_${season}_through_w${week}.csv`,
+          "text/csv",
+          csvRows.length ? toCSV(csvRows) : ""
+        );
+
+      } catch (err) {
+        console.error(err);
+        showError(`<div class="err">Error</div>
+          <div>Something went wrong while fetching data: <span class="mono">${(err && err.message) || err}</span></div>
+          <div><small>Please make sure the league ID is correct and try again. If this persists, try again later—Sleeper may be rate‑limiting or temporarily unavailable.</small></div>`);
+        els.subtitle.textContent = "Unable to load data.";
+        els.raw.textContent = "[]";
+      }
+    }
+
+    els.refreshBtn.addEventListener("click", load);
+
+    // Initial load
+    load();
+  })();
+  </script>
+
+  <!--
+    Instructions for using the matchup summaries:
+    1. Create a JSON file (e.g., "summaries.json") with the structure:
+       {
+         "summaries": {
+           "1": {
+             "1": "Summary text for Week 1, Matchup 1",
+             "2": "Summary text for Week 1, Matchup 2"
+           },
+           "2": {
+             "1": "Summary text for Week 2, Matchup 1"
+           }
+         }
+       }
+    2. Update the SUMMARY_JSON_URL variable in the script above to point to your JSON file.
+    3. When a user clicks on a matchup row in the table, it will expand and show the summary text.
+    4. You can refresh at any time to reload updated summaries.
+    5. All other functionality remains unchanged, including CSV/JSON download buttons.
+  -->
+</body>
+</html>
