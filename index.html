@@ -6,50 +6,174 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     :root{
-      --bg:#0b0f14; --panel:#121822; --text:#e6eef8; --muted:#9fb3c8;
-      --accent:#4aa3ff; --ok:#2ecc71; --warn:#f39c12; --danger:#e74c3c; --chip:#223045;
-      --code:#11161f; --border:#1f2a38;
+      --bg:#0b0f14; 
+      --panel:#121822; 
+      --text:#e6eef8; 
+      --muted:#9fb3c8;
+      --accent:#4aa3ff; 
+      --ok:#2ecc71; 
+      --warn:#f39c12; 
+      --danger:#e74c3c; 
+      --chip:#223045;
+      --code:#11161f; 
+      --border:#1f2a38;
     }
-    html,body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-    header{padding:20px 16px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#0b0f14,#0d121a)}
-    h1{margin:0;font-size:18px}
-    .sub{color:var(--muted);font-size:13px;margin-top:4px}
-    main{padding:16px;max-width:1200px;margin:0 auto}
-    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+    /* Light theme variables */
+    :root.light {
+      --bg: #fafafa;
+      --panel: #ffffff;
+      --text: #000000;
+      --muted: #666666;
+      --accent: #0077cc;
+      --ok: #2ecc71;
+      --warn: #f39c12;
+      --danger: #e74c3c;
+      --chip: #e0e0e0;
+      --code: #f5f5f5;
+      --border: #cccccc;
+    }
+    html,body {
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font:14px/1.45 system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif
+    }
+    header {
+      padding:20px 16px;
+      background:var(--panel);
+      border-bottom:1px solid var(--border);
+    }
+    h1 {
+      margin:0;
+      font-size:18px
+    }
+    .sub {
+      color:var(--muted);
+      font-size:13px;
+      margin-top:4px;
+    }
+    main {
+      padding:16px;
+      max-width:1200px;
+      margin:0 auto
+    }
+    .row {
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-bottom:12px
+    }
     button,.btn {
-      appearance:none;border:1px solid var(--border);background:var(--panel);color:var(--text);
-      padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600
+      appearance:none;
+      border:1px solid var(--border);
+      background:var(--panel);
+      color:var(--text);
+      padding:8px 12px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:600
     }
-    button:hover{border-color:var(--accent);box-shadow:0 0 0 3px rgba(74,163,255,.15)}
-    .pill{background:var(--chip);border:1px solid var(--border);padding:4px 8px;border-radius:999px;color:var(--muted)}
-    .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px}
-    details{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--panel)}
-    summary{cursor:pointer;padding:12px 14px;font-weight:700;background:rgba(255,255,255,0.02)}
-    summary:hover{background:rgba(255,255,255,0.05)}
-    .wk{padding:10px 12px; /* ORIGINAL */ 
-        /* NEW ADDITION BELOW for mobile responsiveness */
-        overflow-x: auto; /* Enables horizontal scroll on small screens */
-        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    button:hover{
+      border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(74,163,255,.15)
     }
-    table{width:100%;border-collapse:collapse;min-width:600px;} /* Ensure columns don’t squish on narrow devices */
-    th,td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
-    th{color:var(--muted);font-weight:700;text-align:left;position:sticky;top:0;background:var(--panel);z-index:1}
-    .team{display:flex;gap:8px;align-items:center}
-    .pts{font-weight:800}
-    .win{color:var(--ok)}
-    .tie{color:var(--warn)}
-    .err{color:var(--danger);font-weight:700}
-    pre{background:var(--code);border:1px solid var(--border);border-radius:10px;padding:12px;overflow:auto;color:#d7e3f4}
-    small{color:var(--muted)}
-    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-    .matchup-row{cursor:pointer}
-    .matchup-summary{background:rgba(255,255,255,0.02)}
+    .pill {
+      background:var(--chip);
+      border:1px solid var(--border);
+      padding:4px 8px;
+      border-radius:999px;
+      color:var(--muted)
+    }
+    .card {
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px
+    }
+    details {
+      border:1px solid var(--border);
+      border-radius:10px;
+      overflow:hidden;
+      background:var(--panel)
+    }
+    summary {
+      cursor:pointer;
+      padding:12px 14px;
+      font-weight:700;
+      background:rgba(255,255,255,0.02)
+    }
+    summary:hover {
+      background:rgba(255,255,255,0.05)
+    }
+    .wk {
+      padding:10px 12px; 
+      overflow-x: auto; 
+      -webkit-overflow-scrolling: touch;
+    }
+    table {
+      width:100%;
+      border-collapse:collapse;
+      min-width:600px;
+    }
+    th,td {
+      padding:8px 10px;
+      border-bottom:1px solid var(--border);
+      vertical-align:top
+    }
+    th {
+      color:var(--muted);
+      font-weight:700;
+      text-align:left;
+      position:sticky;
+      top:0;
+      background:var(--panel);
+      z-index:1
+    }
+    .team {
+      display:flex;
+      gap:8px;
+      align-items:center
+    }
+    .pts {
+      font-weight:800
+    }
+    .win {
+      color:var(--ok)
+    }
+    .tie {
+      color:var(--warn)
+    }
+    .err {
+      color:var(--danger);
+      font-weight:700
+    }
+    pre {
+      background:var(--code);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:12px;
+      overflow:auto;
+      color:#d7e3f4
+    }
+    small {
+      color:var(--muted)
+    }
+    .mono {
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace
+    }
+    .matchup-row {
+      cursor:pointer
+    }
+    .matchup-summary {
+      background:rgba(255,255,255,0.02)
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>Matchups — Sleeper League <span class="mono">1257480275340828672</span></h1>
-    <div class="sub" id="subtitle">Loading current NFL week & league metadata…</div>
+    <h1>Sleeper League Matchups</h1>
+    <div class="sub" id="subtitle">Loading...</div>
   </header>
 
   <main>
@@ -57,6 +181,8 @@
       <button id="refreshBtn">🔄 Refresh</button>
       <button id="downloadJsonBtn">⬇️ Download JSON</button>
       <button id="downloadCsvBtn">⬇️ Download CSV</button>
+      <!-- New theme toggle button -->
+      <button id="themeToggleBtn">Toggle Theme</button>
       <span class="pill" id="metaPill">Season: — · Week: —</span>
       <span class="pill" id="countPill">Matchups: —</span>
     </div>
@@ -94,18 +220,8 @@
     const SUMMARY_JSON_URL = "summaries.json";
 
     let summariesData = {};
+    let allPlayersData = {};
 
-    // Fetch matchup summaries from external JSON.
-    // The expected JSON structure is something like:
-    // {
-    //   "summaries": {
-    //     "1": {
-    //       "1": "Text for Week 1, Matchup 1 summary",
-    //       "2": "Week 1, Matchup 2 summary..."
-    //     },
-    //     "2": { ... }
-    //   }
-    // }
     async function fetchSummaries() {
       try {
         const res = await fetch(SUMMARY_JSON_URL);
@@ -128,6 +244,7 @@
       refreshBtn: document.getElementById("refreshBtn"),
       downloadJsonBtn: document.getElementById("downloadJsonBtn"),
       downloadCsvBtn: document.getElementById("downloadCsvBtn"),
+      themeToggleBtn: document.getElementById("themeToggleBtn")
     };
 
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -171,7 +288,6 @@
     }
 
     async function fetchJson(url, opts={}) {
-      // Add simple retry for transient issues
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
           const res = await fetch(url, { cache: "no-cache", ...opts });
@@ -185,20 +301,17 @@
     }
 
     function deriveTeamName(user) {
-      // Prefer custom team_name if present, else display_name, else username, else fallback
       const meta = user?.metadata || {};
       const preferred = meta.team_name || meta.team_name_display || meta.team_name_full;
       return preferred || user?.display_name || user?.username || "Unknown Team";
     }
 
     function effectivePoints(m) {
-      // Prefer commissioner override if present
       if (m.custom_points !== null && m.custom_points !== undefined) return m.custom_points;
       return m.points ?? 0;
     }
 
     function flattenForCsv(allMatchups) {
-      // Each team as its own row; also compute winner flag per matchup_id
       const rows = [];
       for (const m of allMatchups) {
         const highest = Math.max(...m.teams.map(t => t.points ?? 0));
@@ -230,7 +343,8 @@
       weeks.forEach(week => {
         const list = grouped[week];
         const details = document.createElement("details");
-        details.open = true;
+        // Start minimized
+        details.open = false;
         const summary = document.createElement("summary");
         summary.innerHTML = `Week ${week} — ${list.length} matchup${list.length !== 1 ? "s" : ""}`;
         details.appendChild(summary);
@@ -239,13 +353,14 @@
         wrapper.className = "wk";
 
         const table = document.createElement("table");
-            table.style.overflow = 'auto'; // Add scrollbar when necessary
-            table.style.maxHeight = '300px'; // Set a max height for the scrollbar to appear
-            table.style.width = '100%';
+        table.style.overflow = 'auto';
+        table.style.maxHeight = '300px';
+        table.style.width = '100%';
+
         const thead = document.createElement("thead");
-            thead.style.overflow = 'auto'; // Add scrollbar when necessary
-            thead.style.maxHeight = '300px'; // Set a max height for the scrollbar to appear
-            thead.style.width = '100%';
+        thead.style.overflow = 'auto';
+        thead.style.maxHeight = '300px';
+        thead.style.width = '100%';
         thead.innerHTML = `
           <tr>
             <th>Matchup</th>
@@ -258,12 +373,11 @@
         table.appendChild(thead);
 
         const tbody = document.createElement("tbody");
-            tbody.style.overflow = 'auto'; // Add scrollbar when necessary
-            tbody.style.maxHeight = '300px'; // Set a max height for the scrollbar to appear
-            tbody.style.width = '100%';
+        tbody.style.overflow = 'auto';
+        tbody.style.maxHeight = '300px';
+        tbody.style.width = '100%';
         
         for (const m of list) {
-          // Sort consistently by roster_id
           const teams = [...m.teams].sort((a,b) => a.roster_id - b.roster_id);
           const a = teams[0], b = teams[1];
           const moreTeams = teams.length > 2;
@@ -271,14 +385,13 @@
           const winners = teams.filter(t => (t.points ?? 0) === highest);
           const isTie = winners.length > 1;
 
-          // Create main matchup row
           const tr = document.createElement("tr");
-            tr.style.overflow = 'auto'; // Add scrollbar when necessary
-            tr.style.maxHeight = '300px'; // Set a max height for the scrollbar to appear
-            tr.style.width = '100%';
+          tr.style.overflow = 'auto';
+          tr.style.maxHeight = '300px';
+          tr.style.width = '100%';
+
           tr.classList.add("matchup-row");
           tr.onclick = function() {
-            // Toggle the next row which contains the summary
             const nextRow = tr.nextElementSibling;
             if (nextRow && nextRow.classList.contains("matchup-summary")) {
               nextRow.style.display = nextRow.style.display === "table-row" ? "none" : "table-row";
@@ -298,20 +411,17 @@
             <td>${winnerText}</td>
           `;
 
-          // Create the summary row (initially hidden)
           const summaryRow = document.createElement("tr");
           summaryRow.classList.add("matchup-summary");
           summaryRow.style.display = "none";
           const summaryCell = document.createElement("td");
           summaryCell.colSpan = 6;
-          // Pull a summary string from external JSON or use placeholder
           const summaryText = allSummaries?.[week]?.[m.matchup_id] || "Placeholder matchup summary text goes here.";
           summaryCell.innerHTML = `<p style="margin:8px 0;">${summaryText}</p>`;
           summaryRow.appendChild(summaryCell);
 
           tbody.appendChild(tr);
 
-          // If more than 2 teams in a matchup, append that mini explanatory row
           if (moreTeams) {
             const tr2 = document.createElement("tr");
             const col = document.createElement("td");
@@ -322,7 +432,6 @@
             tbody.appendChild(tr2);
           }
 
-          // Finally, we append the summary row
           tbody.appendChild(summaryRow);
         }
 
@@ -335,14 +444,17 @@
 
     async function load() {
       clearError();
-      els.subtitle.textContent = "Fetching state, league users & rosters…";
+      els.subtitle.textContent = "Fetching data...";
       els.raw.textContent = "Loading…";
 
       try {
-        // Fetch external matchup summaries from JSON
+        // Fetch external matchup summaries
         summariesData = await fetchSummaries();
 
-        // 1) Get current NFL state (season + current week)
+        // Fetch all NFL player data for name lookups
+        allPlayersData = await fetchJson(`${BASE}/players/nfl`);
+
+        // 1) Current NFL state
         const state = await fetchJson(`${BASE}/state/nfl`);
         const { season, season_type, week } = state || {};
         els.metaPill.textContent = `Season: ${season ?? "—"} · Week: ${week ?? "—"} (${season_type || "—"})`;
@@ -352,7 +464,7 @@
           return;
         }
 
-        // 2) Users & Rosters to map roster_id -> owner display + team name
+        // 2) Users & Rosters
         const [users, rosters] = await Promise.all([
           fetchJson(`${BASE}/league/${LEAGUE_ID}/users`),
           fetchJson(`${BASE}/league/${LEAGUE_ID}/rosters`)
@@ -371,10 +483,8 @@
 
         els.subtitle.textContent = `Fetching matchups for Weeks 1 → ${week}…`;
 
-        // 3) Fetch all matchups from Week 1 to current week
+        // 3) Matchups from Week 1 to current
         const weeks = Array.from({ length: week }, (_, i) => i + 1);
-
-        // Parallelize with moderate concurrency (avoid hammering)
         const results = [];
         const CONCURRENCY = 4;
         let i = 0;
@@ -384,17 +494,15 @@
             const wk = weeks[myIndex];
             const data = await fetchJson(`${BASE}/league/${LEAGUE_ID}/matchups/${wk}`);
             results.push({ week: wk, data });
-            // small delay for politeness
             await sleep(40);
           }
         }
         await Promise.all(Array.from({ length: CONCURRENCY }, worker));
         results.sort((a,b) => a.week - b.week);
 
-        // 4) Normalize into combined list of matchup objects (group by matchup_id)
+        // 4) Combine into list
         const combined = [];
         for (const { week: wk, data } of results) {
-          // Each item is a team result with roster_id + matchup_id
           const groups = new Map();
           for (const itm of (data || [])) {
             const mid = itm.matchup_id ?? -1;
@@ -411,12 +519,12 @@
                 team_name: nameByRoster.get(rid) || `Roster ${rid}`,
                 owner_display: ownerDisplayByRoster.get(rid) || "",
                 points: typeof pts === "number" ? Math.round(pts * 100) / 100 : pts,
-                starters: t.starters || [],
-                players: t.players || []
+                // Include Sleeper player full names as comments in array items
+                starters: (t.starters || []).map(pid => `${pid} // ${(allPlayersData[pid]?.full_name) || 'Unknown Player'}`),
+                players: (t.players || []).map(pid => `${pid} // ${(allPlayersData[pid]?.full_name) || 'Unknown Player'}`)
               };
             });
 
-            // Compute winners (may be tie)
             const top = Math.max(...teams.map(x => x.points ?? 0));
             const winners = teams.filter(x => (x.points ?? 0) === top).map(x => x.roster_id);
 
@@ -430,7 +538,7 @@
           }
         }
 
-        // 5) UI render + exports
+        // 5) Render + exports
         const groupedByWeek = combined.reduce((acc, m) => {
           (acc[m.week] ||= []).push(m);
           return acc;
@@ -439,14 +547,11 @@
           groupedByWeek[wk].sort((a,b) => (a.matchup_id ?? 0) - (b.matchup_id ?? 0));
         }
 
-        // Pass summaries data to renderWeeks
         renderWeeks(groupedByWeek, summariesData.summaries);
-
         els.countPill.textContent = `Matchups: ${combined.length}`;
         els.raw.textContent = JSON.stringify(combined, null, 2);
         els.subtitle.textContent = `Loaded ${combined.length} matchup rows from Week 1 → ${week}.`;
 
-        // Hook up download buttons for JSON & CSV
         els.downloadJsonBtn.onclick = () => download(
           `sleeper_matchups_${season}_through_w${week}.json`,
           "application/json",
@@ -469,6 +574,11 @@
         els.raw.textContent = "[]";
       }
     }
+
+    // Theme toggle
+    els.themeToggleBtn.addEventListener("click", () => {
+      document.documentElement.classList.toggle('light');
+    });
 
     els.refreshBtn.addEventListener("click", load);
 
