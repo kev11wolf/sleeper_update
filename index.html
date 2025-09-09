@@ -14,7 +14,7 @@
     header{padding:20px 16px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#0b0f14,#0d121a)}
     h1{margin:0;font-size:18px}
     .sub{color:var(--muted);font-size:13px;margin-top:4px}
-    main{padding:16px;max-width:auto;margin:0 auto}
+    main{padding:16px;max-width:1200px;margin:0 auto}
     .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
     button,.btn {
       appearance:none;border:1px solid var(--border);background:var(--panel);color:var(--text);
@@ -27,7 +27,7 @@
     summary{cursor:pointer;padding:12px 14px;font-weight:700;background:rgba(255,255,255,0.02)}
     summary:hover{background:rgba(255,255,255,0.05)}
     .wk{padding:10px 12px}
-    table{width:auto;border-collapse:collapse}
+    table{width:100%;border-collapse:collapse}
     th,td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
     th{color:var(--muted);font-weight:700;text-align:left;position:sticky;top:0;background:var(--panel);z-index:1}
     .team{display:flex;gap:8px;align-items:center}
@@ -238,12 +238,12 @@
         const thead = document.createElement("thead");
         thead.innerHTML = `
           <tr>
-            <th style="width:auto">Matchup</th>
+            <th style="width:100px">Matchup</th>
             <th>Team A</th>
-            <th style="width:auto">Pts</th>
+            <th style="width:110px">Pts</th>
             <th>Team B</th>
-            <th style="width:auto">Pts</th>
-            <th style="width:auto">Winner</th>
+            <th style="width:110px">Pts</th>
+            <th style="width:120px">Winner</th>
           </tr>`;
         table.appendChild(thead);
 
