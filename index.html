@@ -39,6 +39,7 @@
       font:14px/1.45 system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif
     }
     header {
+      position:relative;
       padding:20px 16px;
       background:var(--panel);
       border-bottom:1px solid var(--border);
@@ -52,6 +53,34 @@
       font-size:13px;
       margin-top:4px;
     }
+    /* New styles for the top-right button */
+    .header-actions {
+      position:absolute;
+      top:20px;
+      right:20px;
+    }
+    .leagueBtn {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      color:var(--text);
+      text-decoration:none;
+      border:1px solid var(--border);
+      background:var(--panel);
+      padding:8px 12px;
+      border-radius:8px;
+      font-weight:600;
+    }
+    .leagueBtn:hover {
+      border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(74,163,255,.15)
+    }
+    .leagueBtn svg {
+      width:16px;
+      height:16px;
+      fill:currentColor;
+    }
+
     main {
       padding:16px;
       max-width:1200px;
@@ -174,6 +203,20 @@
   <header>
     <h1>Sleeper League Matchups</h1>
     <div class="sub" id="subtitle">Loading...</div>
+
+    <!-- New top-right button linking to Sleeper league -->
+    <div class="header-actions">
+      <a 
+        href="https://sleeper.com/leagues/1257480275340828672" 
+        target="_blank" 
+        class="leagueBtn" 
+        aria-label="Go to Sleeper League Page">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21.95 11.29c-.64-1.63-3.55-6.28-9.6-6.28-6.05 0-8.96 4.65-9.6 6.28-.09.23-.09.49 0 .72.64 1.63 3.55 6.28 9.6 6.28 6.05 0 8.96-4.65 9.6-6.28.09-.23.09-.49 0-.72zM12 16c-1.83 0-3.55-.21-5-.62-.12-.03-.18-.17-.11-.28.32-.49.68-1.12 1-1.78.07-.15.23-.2.4-.17 1.07.17 2.19.26 3.29.26 1.09 0 2.21-.09 3.28-.26.17-.03.33.02.4.17.32.66.67 1.29.99 1.78.07.11.01.25-.11.28-1.45.41-3.17.62-5 .62z"></path>
+        </svg>
+        Sleeper
+      </a>
+    </div>
   </header>
 
   <main>
