@@ -1,6 +1,4 @@
-ai prompt
-
-update each of these placeholders with interesting facts about each match up from my sleeper fantast league my Sleeper Matchups — League id is 1257480275340828672 including good picks, bad breaks, interesting choices, and noteable injuries. the more smack talk at spicy level the better too.  here’s the json from my matchup json for reference. use current nfl week 1 2025 season data. provide an updated summaries.json with info populated for me to replace my data with curtailed to sleeper rosters and matchup results.
+update each of these placeholders with interesting facts about each match up from my sleeper fantast league my Sleeper Matchups — League id is 1257480275340828672 including good picks, bad breaks, interesting choices, and noteable injuries. the more smack talk at spicy level the better too.  here’s the json from my matchup json for reference. use current nfl week 1 2025 season data. provide an updated summaries.json with info populated for me to replace my data with curtailed to sleeper rosters and matchup results. make it 3 sentences long and sound like a reporter wrote it.
 
   "summaries": {
 
