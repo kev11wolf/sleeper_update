@@ -27,7 +27,7 @@
     summary{cursor:pointer;padding:12px 14px;font-weight:700;background:rgba(255,255,255,0.02)}
     summary:hover{background:rgba(255,255,255,0.05)}
     .wk{padding:10px 12px}
-    table{width:50%;border-collapse:collapse}
+    table{width:100%;border-collapse:collapse}
     th,td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
     th{color:var(--muted);font-weight:700;text-align:left;position:sticky;top:0;background:var(--panel);z-index:1}
     .team{display:flex;gap:8px;align-items:center}
@@ -235,19 +235,22 @@
         wrapper.className = "wk";
 
         const table = document.createElement("table");
+            table.style.overflow = 'auto'; // Add scrollbar when necessary
+            table.style.maxHeight = '300px'; // Set a max height for the scrollbar to appear
         const thead = document.createElement("thead");
         thead.innerHTML = `
           <tr>
-            <th style="width:100px">Matchup</th>
+            <th>Matchup</th>
             <th>Team A</th>
-            <th style="width:110px">Pts</th>
+            <th>Pts</th>
             <th>Team B</th>
-            <th style="width:110px">Pts</th>
-            <th style="width:120px">Winner</th>
+            <th>Pts</th>
+            <th>Winner</th>
           </tr>`;
         table.appendChild(thead);
 
         const tbody = document.createElement("tbody");
+        
         for (const m of list) {
           // Sort consistently by roster_id
           const teams = [...m.teams].sort((a,b) => a.roster_id - b.roster_id);
