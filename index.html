@@ -237,7 +237,11 @@
         const table = document.createElement("table");
             table.style.overflow = 'auto'; // Add scrollbar when necessary
             table.style.maxHeight = '300px'; // Set a max height for the scrollbar to appear
+            table.style.width = '100%';
         const thead = document.createElement("thead");
+            thead.style.overflow = 'auto'; // Add scrollbar when necessary
+            thead.style.maxHeight = '300px'; // Set a max height for the scrollbar to appear
+            thead.style.width = '100%';
         thead.innerHTML = `
           <tr>
             <th>Matchup</th>
@@ -250,6 +254,9 @@
         table.appendChild(thead);
 
         const tbody = document.createElement("tbody");
+            tbody.style.overflow = 'auto'; // Add scrollbar when necessary
+            tbody.style.maxHeight = '300px'; // Set a max height for the scrollbar to appear
+            tbody.style.width = '100%';
         
         for (const m of list) {
           // Sort consistently by roster_id
@@ -262,6 +269,9 @@
 
           // Create main matchup row
           const tr = document.createElement("tr");
+            tr.style.overflow = 'auto'; // Add scrollbar when necessary
+            tr.style.maxHeight = '300px'; // Set a max height for the scrollbar to appear
+            tr.style.width = '100%';
           tr.classList.add("matchup-row");
           tr.onclick = function() {
             // Toggle the next row which contains the summary
