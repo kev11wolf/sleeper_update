@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -111,9 +110,11 @@
     .pill {
       background:var(--chip);
       border:1px solid var(--border);
-      padding:4px 8px;
       border-radius:999px;
-      color:var(--muted)
+      padding:4px 8px;
+      color:var(--muted);
+      display:inline-block;
+      margin:2px 2px 2px 0;
     }
     .card {
       background:var(--panel);
@@ -232,32 +233,21 @@
 
     <div id="errors" class="card" style="display:none"></div>
 
-<div class="card" style="margin-top:24px;">
-  <h3>Congratulations to this week's high point scorer!</h3>
-  <video controls style="width:100%; max-width:800px;">
-    <source src="https://raw.githubusercontent.com/kev11wolf/sleeper_update/main/week-1-invideo-ai-720%20Borat%27s%20Hilarious%20Congrats%20to%20MayeHisCaf%202025-09-10.mp4" type="video/mp4" />
-    Your browser does not support the video tag.
-  </video>
-</div>
+    <div class="card" style="margin-top:24px;">
+      <h3>Congratulations to this week's high point scorer!</h3>
+      <video controls style="width:100%; max-width:800px;">
+        <source src="https://raw.githubusercontent.com/kev11wolf/sleeper_update/main/week-1-invideo-ai-720%20Borat%27s%20Hilarious%20Congrats%20to%20MayeHisCaf%202025-09-10.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    </div>
 
     <div class="card" style="margin-top:24px;">
       <h3>NFL News Update - Week 2</h3>
       <p>
-        <!--give me a 4 sentence update for nfl week 2. include recent injury updates, teams to watch out for, things to consider, and interesting streaks or matchups that will occur. make it sound like a reporter write it, and make it have a very snarky, sarcastic, and dry humor touch.-->
-        <!-- Provide an update for all NFL games, 4-sentence max, written as an interesting sports reporter summary that includes noteable wins/losses, interesting records broken, any noteable off the field news, and things to look out for next week. Pull data for week XXX of the 2025 season. extra points for being blunt, rude, and tastefully humorous. -->
         Welcome to NFL Week 2, where the injury bug is already throwing a bigger party than your average tailgate—Packers’ Zach Tom (hip) and Aaron Banks (ankle/groin) are questionable, while the 49ers might be without Brock Purdy (shoulder/toe) and George Kittle, so expect Mac Jones to possibly relive his Alabama glory days in New Orleans. Keep an eye on the Commanders and Packers, both 1-0 and strutting into Thursday night like they’ve already booked their Super Bowl suites, with Jayden Daniels and Edgerrin Cooper ready to trade blows in a matchup spicier than a Lambeau bratwurst. The Browns and Ravens, both licking their Week 1 wounds, face off in a divisional grudge match that promises more drama than a reality TV reunion, especially with Baltimore favored by a whopping 11.5 points. Don’t sleep on the Bills-Jets clash, where Josh Allen’s improbable comeback streak meets Aaron Rodgers’ revenge tour against his old squad—grab the popcorn, it’s gonna be a circus. Betting lines are shifting faster than a running back dodging tacklers, so check those injury reports 90 minutes before kickoff unless you enjoy losing money on a whim. And for the Giants, Brian Daboll’s refusal to commit to Russell Wilson as the Week 2 starter smells like a midseason quarterback controversy brewing—shocker, right?
       </p>
     </div>
-    
- <!--     <div class="card" style="margin-top:24px;">
-      <h3>Sleeper Matchup Recap (Standings, Streaks, and noteable blunders)</h3>
-      <p> -->
-        <!-- analyze the attached json and pull standings and previous results from the sleeper league 1257480275340828672. including current standings, streaks that are building or were broken, noteable blunders from the players on the roster and were left on the bench, and what the playoff picture is looking like and what each team needs to do turn there team around. extra points for calling out people by name and making them feel worthless and stupid. 4 sentence max.  -->
-    <!--
-        Week 1 of the 2025 NFL season delivered fireworks, heartbreak, and history. The Buffalo Bills stunned the Ravens with a 41-40 comeback, becoming the first team in NFL history to win after trailing by 15+ points in the final four minutes. Rookie J.J. McCarthy electrified Minnesota, tossing three fourth-quarter touchdowns in his debut—matching a feat only Steve Young accomplished in the last 45 years. Daniel Jones silenced critics in Indy, accounting for three touchdowns and leading the Colts to a 33-8 rout of Miami, while Baker Mayfield’s late-game heroics lifted Tampa Bay over Atlanta with a clutch 25-yard TD to rookie Emeka Egbuka. Injuries hit Miami hard, with Tyreek Hill and De’Von Achane both sidelined, contributing to a dismal offensive showing. And in Green Bay, Micah Parsons made an immediate impact in his debut, helping the Packers dominate Detroit 27-13.
-      </p>
-    </div>
--->
+
     <div id="weeksContainer" class="stack"></div>
 
     <!-- Hidden raw JSON display and tips (unchanged but hidden) -->
@@ -277,7 +267,6 @@
     const LEAGUE_ID = "1257480275340828672";
     const BASE = "https://api.sleeper.app/v1";
     // URL to your JSON file containing matchup summaries
-    // Adjust as needed to point to your own JSON file
     const SUMMARY_JSON_URL = "summaries.json";
 
     let summariesData = {};
@@ -482,19 +471,63 @@
             <td>${winnerText}</td>
           `;
 
-          // A hidden row for the summary text
+          // A hidden row for the summary text & two-column players if exactly two teams
           const summaryRow = document.createElement("tr");
           summaryRow.classList.add("matchup-summary");
           summaryRow.style.display = "none";
           const summaryCell = document.createElement("td");
           summaryCell.colSpan = 6;
           const summaryText = allSummaries?.[week]?.[m.matchup_id] || "Placeholder matchup summary text goes here.";
-          summaryCell.innerHTML = `<p style="margin:8px 0;">${summaryText}</p>`;
-          summaryRow.appendChild(summaryCell);
 
+          if (!moreTeams) {
+            // Build two-column layout for Team A/B starters as small pills
+            const aStartersHtml = (a.starters || [])
+              .map(s => {
+                const [pid, fullName] = s.split(" // ");
+                const name = fullName || "defense";
+                const points = (m.teams.find(x => x.roster_id === a.roster_id)?.players_points || {})[pid] ?? 0;
+                return `<span class="pill">${name} (${fmt(points)} pts)</span>`;
+              })
+              .join(" ");
+
+            const bStartersHtml = (b.starters || [])
+              .map(s => {
+                const [pid, fullName] = s.split(" // ");
+                const name = fullName || "defense";
+                const points = (m.teams.find(x => x.roster_id === b.roster_id)?.players_points || {})[pid] ?? 0;
+                return `<span class="pill">${name} (${fmt(points)} pts)</span>`;
+              })
+              .join(" ");
+
+            const matchupDetailHTML = `
+              <div style="margin-top:8px; display:flex; gap:16px;">
+                <div style="flex:1; min-width:0;">
+                  <strong>${a.team_name} Starters</strong>
+                  <div style="margin:6px 0; display:flex; flex-wrap:wrap; gap:4px;">
+                    ${aStartersHtml}
+                  </div>
+                </div>
+                <div style="flex:1; min-width:0;">
+                  <strong>${b.team_name} Starters</strong>
+                  <div style="margin:6px 0; display:flex; flex-wrap:wrap; gap:4px;">
+                    ${bStartersHtml}
+                  </div>
+                </div>
+              </div>
+            `;
+            summaryCell.innerHTML = `
+              <p style="margin:8px 0;">${summaryText}</p>
+              ${matchupDetailHTML}
+            `;
+          } else {
+            // Multi-team matchups: keep original text
+            summaryCell.innerHTML = `<p style="margin:8px 0;">${summaryText}</p>`;
+          }
+
+          summaryRow.appendChild(summaryCell);
           tbody.appendChild(tr);
 
-          // If there are more than two teams in a single matchup, show them
+          // If there are more than two teams in a single matchup, show them in an extra row
           if (moreTeams) {
             const tr2 = document.createElement("tr");
             const col = document.createElement("td");
@@ -504,7 +537,6 @@
             tr2.appendChild(col);
             tbody.appendChild(tr2);
           }
-
           tbody.appendChild(summaryRow);
         }
 
@@ -588,14 +620,17 @@
             const teams = arr.map(t => {
               const rid = t.roster_id;
               const pts = effectivePoints(t);
+              // Build player_points if available
+              const playersPoints = t.players_points || {};
               return {
                 roster_id: rid,
                 team_name: nameByRoster.get(rid) || `Roster ${rid}`,
                 owner_display: ownerDisplayByRoster.get(rid) || "",
                 points: typeof pts === "number" ? Math.round(pts * 100) / 100 : pts,
+                players_points: playersPoints,
                 // Add the player's full name after each ID
-                starters: (t.starters || []).map(pid => `${pid} // ${allPlayersData[pid]?.full_name ?? 'Unknown Player'}`),
-                players: (t.players || []).map(pid => `${pid} // ${allPlayersData[pid]?.full_name ?? 'Unknown Player'}`)
+                starters: (t.starters || []).map(pid => `${pid} // ${allPlayersData[pid]?.full_name ?? 'defense'}`),
+                players: (t.players || []).map(pid => `${pid} // ${allPlayersData[pid]?.full_name ?? 'defense'}`)
               };
             });
 
@@ -663,25 +698,5 @@
     load();
   })();
   </script>
-
-  <!--
-    Instructions for using the matchup summaries:
-    1. Create a JSON file (e.g., "summaries.json") with the structure:
-       {
-         "summaries": {
-           "1": {
-             "1": "Summary text for Week 1, Matchup 1",
-             "2": "Summary text for Week 1, Matchup 2"
-           },
-           "2": {
-             "1": "Summary text for Week 2, Matchup 1"
-           }
-         }
-       }
-    2. Update the SUMMARY_JSON_URL above to point to your JSON file, if needed.
-    3. Clicking on a matchup row expands a summary. The JSON/CSV download buttons export the full data,
-       with player IDs and their full names in comment form for clarity.
-    4. You can refresh at any time to reload data and summaries.
-  -->
 </body>
 </html>
