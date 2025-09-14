@@ -6,19 +6,18 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     :root{
-      --bg:#0b0f14; 
-      --panel:#121822; 
-      --text:#e6eef8; 
+      --bg:#0b0f14;
+      --panel:#121822;
+      --text:#e6eef8;
       --muted:#9fb3c8;
-      --accent:#4aa3ff; 
-      --ok:#2ecc71; 
-      --warn:#f39c12; 
-      --danger:#e74c3c; 
+      --accent:#4aa3ff;
+      --ok:#2ecc71;
+      --warn:#f39c12;
+      --danger:#e74c3c;
       --chip:#223045;
-      --code:#11161f; 
+      --code:#11161f;
       --border:#1f2a38;
     }
-    /* Light theme variables */
     :root.light {
       --bg: #fafafa;
       --panel: #ffffff;
@@ -39,165 +38,207 @@
       font:14px/1.45 system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif
     }
     header {
-      position:relative;
-      padding:20px 16px;
-      background:var(--panel);
-      border-bottom:1px solid var(--border);
+      position: relative;
+      padding: 20px 16px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
     }
     h1 {
-      margin:0;
-      font-size:18px
+      margin: 0;
+      font-size: 18px
     }
     .sub {
-      color:var(--muted);
-      font-size:13px;
-      margin-top:4px;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
     }
-    /* New styles for the top-right button */
     .header-actions {
-      position:absolute;
-      top:20px;
-      right:20px;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
     .leagueBtn {
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      color:var(--text);
-      text-decoration:none;
-      border:1px solid var(--border);
-      background:var(--panel);
-      padding:8px 12px;
-      border-radius:8px;
-      font-weight:600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: 600;
     }
     .leagueBtn:hover {
-      border-color:var(--accent);
-      box-shadow:0 0 0 3px rgba(74,163,255,.15)
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(74,163,255,.15)
     }
     .leagueBtn svg {
-      width:16px;
-      height:16px;
-      fill:currentColor;
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
     }
-
+    /* Audio player styles */
+    .audio-player {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .audio-player audio {
+      width: 200px;
+      outline: none;
+    }
+    .audio-player audio::-webkit-media-controls-panel {
+      background: var(--panel);
+      color: var(--text);
+    }
+    .audio-player audio::-webkit-media-controls-play-button,
+    .audio-player audio::-webkit-media-controls-volume-slider {
+      color: var(--text);
+    }
+    .audio-player audio::-webkit-media-controls-current-time-display,
+    .audio-player audio::-webkit-media-controls-time-remaining-display {
+      color: var(--text);
+    }
+    /* Ensure audio player doesn't overlap league button */
+    @media (max-width: 600px) {
+      .header-actions {
+        flex-direction: column;
+        align-items: flex-end;
+      }
+      .audio-player {
+        top: 60px; /* Adjust to avoid overlap with leagueBtn */
+      }
+    }
     main {
-      padding:16px;
-      max-width:1200px;
-      margin:0 auto
+      padding: 16px;
+      max-width: 1200px;
+      margin: 0 auto
     }
     .row {
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin-bottom:12px
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 12px
     }
     button,.btn {
-      appearance:none;
-      border:1px solid var(--border);
-      background:var(--panel);
-      color:var(--text);
-      padding:8px 12px;
-      border-radius:8px;
-      cursor:pointer;
-      font-weight:600
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600
     }
-    button:hover{
-      border-color:var(--accent);
-      box-shadow:0 0 0 3px rgba(74,163,255,.15)
+    button:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(74,163,255,.15)
     }
     .pill {
-      background:var(--chip);
-      border:1px solid var(--border);
-      border-radius:999px;
-      padding:4px 8px;
-      color:var(--muted);
-      display:inline-block;
-      margin:2px 2px 2px 0;
+      background: var(--chip);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 8px;
+      color: var(--muted);
+      display: inline-block;
+      margin: 2px 2px 2px 0;
     }
     .card {
-      background:var(--panel);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:12px
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px
     }
     details {
-      border:1px solid var(--border);
-      border-radius:10px;
-      overflow:hidden;
-      background:var(--panel)
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--panel)
     }
     summary {
-      cursor:pointer;
-      padding:12px 14px;
-      font-weight:700;
-      background:rgba(255,255,255,0.02)
+      cursor: pointer;
+      padding: 12px 14px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.02)
     }
     summary:hover {
-      background:rgba(255,255,255,0.05)
+      background: rgba(255,255,255,0.05)
     }
     .wk {
-      padding:10px 12px; 
-      overflow-x: auto; 
+      padding: 10px 12px;
+      overflow-x: auto;
       -webkit-overflow-scrolling: touch;
     }
     table {
-      width:100%;
-      border-collapse:collapse;
-      min-width:600px;
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
     }
     th,td {
-      padding:8px 10px;
-      border-bottom:1px solid var(--border);
-      vertical-align:top
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top
     }
     th {
-      color:var(--muted);
-      font-weight:700;
-      text-align:left;
-      position:sticky;
-      top:0;
-      background:var(--panel);
-      z-index:1
+      color: var(--muted);
+      font-weight: 700;
+      text-align: left;
+      position: sticky;
+      top: 0;
+      background: var(--panel);
+      z-index: 1
     }
     .team {
-      display:flex;
-      gap:8px;
-      align-items:center
+      display: flex;
+      gap: 8px;
+      align-items: center
     }
     .pts {
-      font-weight:800
+      font-weight: 800
     }
     .win {
-      color:var(--ok)
+      color: var(--ok)
     }
     .tie {
-      color:var(--warn)
+      color: var(--warn)
     }
     .err {
-      color:var(--danger);
-      font-weight:700
+      color: var(--danger);
+      font-weight: 700
     }
     pre {
-      background:var(--code);
-      border:1px solid var(--border);
-      border-radius:10px;
-      padding:12px;
-      overflow:auto;
-      color:#d7e3f4
+      background: var(--code);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      overflow: auto;
+      color: #d7e3f4
     }
     small {
-      color:var(--muted)
+      color: var(--muted)
     }
     .mono {
-      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace
+      font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace
     }
     .matchup-row {
-      cursor:pointer
+      cursor: pointer
     }
     .matchup-summary {
-      background:rgba(255,255,255,0.02)
+      background: rgba(255,255,255,0.02)
     }
   </style>
 </head>
@@ -205,22 +246,25 @@
   <header>
     <h1>Sleeper League Matchups</h1>
     <div class="sub" id="subtitle">Loading...</div>
-
-    <!-- New top-right button linking to Sleeper league -->
     <div class="header-actions">
-      <a 
-        href="https://sleeper.com/leagues/1257480275340828672" 
-        target="_blank" 
-        class="leagueBtn" 
+      <a
+        href="https://sleeper.com/leagues/1257480275340828672"
+        target="_blank"
+        class="leagueBtn"
         aria-label="Go to Sleeper League Page">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M21.95 11.29c-.64-1.63-3.55-6.28-9.6-6.28-6.05 0-8.96 4.65-9.6 6.28-.09.23-.09.49 0 .72.64 1.63 3.55 6.28 9.6 6.28 6.05 0 8.96-4.65 9.6-6.28.09-.23.09-.49 0-.72zM12 16c-1.83 0-3.55-.21-5-.62-.12-.03-.18-.17-.11-.28.32-.49.68-1.12 1-1.78.07-.15.23-.2.4-.17 1.07.17 2.19.26 3.29.26 1.09 0 2.21-.09 3.28-.26.17-.03.33.02.4.17.32.66.67 1.29.99 1.78.07.11.01.25-.11.28-1.45.41-3.17.62-5 .62z"></path>
         </svg>
         Sleeper
       </a>
+      <div class="audio-player">
+        <audio controls>
+          <source src="https://example.com/your-youtube-mp3.mp3" type="audio/mpeg" />
+          Your browser does not support the audio element.
+        </audio>
+      </div>
     </div>
   </header>
-
   <main>
     <div class="row">
       <button id="refreshBtn">🔄 Refresh</button>
@@ -230,9 +274,7 @@
       <span class="pill" id="metaPill">Season: — · Week: —</span>
       <span class="pill" id="countPill">Matchups: —</span>
     </div>
-
     <div id="errors" class="card" style="display:none"></div>
-
     <div class="card" style="margin-top:24px;">
       <h3>Congratulations to this week's high point scorer!</h3>
       <video controls style="width:100%; max-width:800px;">
@@ -240,17 +282,13 @@
         Your browser does not support the video tag.
       </video>
     </div>
-
     <div class="card" style="margin-top:24px;">
       <h3>NFL News Update - Week 2</h3>
       <p>
         Welcome to NFL Week 2, where the injury bug is already throwing a bigger party than your average tailgate—Packers’ Zach Tom (hip) and Aaron Banks (ankle/groin) are questionable, while the 49ers might be without Brock Purdy (shoulder/toe) and George Kittle, so expect Mac Jones to possibly relive his Alabama glory days in New Orleans. Keep an eye on the Commanders and Packers, both 1-0 and strutting into Thursday night like they’ve already booked their Super Bowl suites, with Jayden Daniels and Edgerrin Cooper ready to trade blows in a matchup spicier than a Lambeau bratwurst. The Browns and Ravens, both licking their Week 1 wounds, face off in a divisional grudge match that promises more drama than a reality TV reunion, especially with Baltimore favored by a whopping 11.5 points. Don’t sleep on the Bills-Jets clash, where Josh Allen’s improbable comeback streak meets Aaron Rodgers’ revenge tour against his old squad—grab the popcorn, it’s gonna be a circus. Betting lines are shifting faster than a running back dodging tacklers, so check those injury reports 90 minutes before kickoff unless you enjoy losing money on a whim. And for the Giants, Brian Daboll’s refusal to commit to Russell Wilson as the Week 2 starter smells like a midseason quarterback controversy brewing—shocker, right?
       </p>
     </div>
-
     <div id="weeksContainer" class="stack"></div>
-
-    <!-- Hidden raw JSON display and tips (unchanged but hidden) -->
     <h3 style="margin-top:24px; display:none;">Raw (combined) JSON</h3>
     <pre id="raw" aria-live="polite" style="display:none;">—</pre>
     <p style="display:none;">
@@ -259,20 +297,14 @@
         Starters and players (per team) are preserved in the JSON export.
       </small>
     </p>
-
   </main>
-
   <script>
   (function () {
     const LEAGUE_ID = "1257480275340828672";
     const BASE = "https://api.sleeper.app/v1";
-    // URL to your JSON file containing matchup summaries
     const SUMMARY_JSON_URL = "summaries.json";
-
     let summariesData = {};
     let allPlayersData = {};
-
-    // Fetch extended matchup summaries (optional external file)
     async function fetchSummaries() {
       try {
         const res = await fetch(SUMMARY_JSON_URL);
@@ -284,7 +316,6 @@
         return { summaries: {} };
       }
     }
-
     const els = {
       subtitle: document.getElementById("subtitle"),
       metaPill: document.getElementById("metaPill"),
@@ -297,15 +328,11 @@
       downloadCsvBtn: document.getElementById("downloadCsvBtn"),
       themeToggleBtn: document.getElementById("themeToggleBtn")
     };
-
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-
     function fmt(n) {
       if (n === null || n === undefined) return "—";
       return Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 });
     }
-
-    // Convert flattened rows to CSV
     function toCSV(rows) {
       const headers = Object.keys(rows[0] || {});
       const escape = (val) => {
@@ -317,31 +344,25 @@
       };
       return [headers.join(","), ...rows.map(r => headers.map(h => escape(r[h])).join(","))].join("\n");
     }
-
-    // Helper for file downloads
     function download(name, mime, text) {
       const blob = new Blob([text], { type: mime });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url; 
+      a.href = url;
       a.download = name;
       document.body.appendChild(a);
       a.click();
       URL.revokeObjectURL(url);
       a.remove();
     }
-
     function showError(html) {
       els.errors.style.display = "block";
       els.errors.innerHTML = html;
     }
-
     function clearError() {
       els.errors.style.display = "none";
       els.errors.textContent = "";
     }
-
-    // Attempt fetching JSON w/ simple retry logic
     async function fetchJson(url, opts={}) {
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
@@ -354,21 +375,17 @@
         }
       }
     }
-
     function deriveTeamName(user) {
       const meta = user?.metadata || {};
       const preferred = meta.team_name || meta.team_name_display || meta.team_name_full;
       return preferred || user?.display_name || user?.username || "Unknown Team";
     }
-
     function effectivePoints(m) {
       if (m.custom_points !== null && m.custom_points !== undefined) {
         return m.custom_points;
       }
       return m.points ?? 0;
     }
-
-    // Build flattened CSV-friendly rows
     function flattenForCsv(allMatchups) {
       const rows = [];
       for (const m of allMatchups) {
@@ -394,28 +411,22 @@
       }
       return rows;
     }
-
-    // Render the weekly matchup tables
     function renderWeeks(grouped, allSummaries) {
       els.weeksContainer.innerHTML = "";
       const weeks = Object.keys(grouped).map(n => Number(n)).sort((a,b) => a-b);
       weeks.forEach(week => {
         const list = grouped[week];
         const details = document.createElement("details");
-        // Start minimized
         details.open = false;
         const summary = document.createElement("summary");
         summary.innerHTML = `Week ${week} — ${list.length} matchup${list.length !== 1 ? "s" : ""}`;
         details.appendChild(summary);
-
         const wrapper = document.createElement("div");
         wrapper.className = "wk";
-
         const table = document.createElement("table");
         table.style.overflow = 'auto';
         table.style.maxHeight = '300px';
         table.style.width = '100%';
-
         const thead = document.createElement("thead");
         thead.style.overflow = 'auto';
         thead.style.maxHeight = '300px';
@@ -430,12 +441,10 @@
             <th>Winner</th>
           </tr>`;
         table.appendChild(thead);
-
         const tbody = document.createElement("tbody");
         tbody.style.overflow = 'auto';
         tbody.style.maxHeight = '300px';
         tbody.style.width = '100%';
-        
         for (const m of list) {
           const teams = [...m.teams].sort((a,b) => a.roster_id - b.roster_id);
           const a = teams[0], b = teams[1];
@@ -443,13 +452,10 @@
           const highest = Math.max(...teams.map(t => t.points ?? 0));
           const winners = teams.filter(t => (t.points ?? 0) === highest);
           const isTie = winners.length > 1;
-
-          // One row for the basic matchup overview
           const tr = document.createElement("tr");
           tr.style.overflow = 'auto';
           tr.style.maxHeight = '300px';
           tr.style.width = '100%';
-
           tr.classList.add("matchup-row");
           tr.onclick = function() {
             const nextRow = tr.nextElementSibling;
@@ -457,11 +463,9 @@
               nextRow.style.display = nextRow.style.display === "table-row" ? "none" : "table-row";
             }
           };
-
           const winnerText = isTie
             ? `<span class="tie">Tie (${fmt(highest)})</span>`
             : `<span class="win">${winners[0]?.team_name || "—"}</span>`;
-
           tr.innerHTML = `
             <td class="mono">#${m.matchup_id}</td>
             <td class="team">${a ? a.team_name : "—"}<br><small class="muted">${a?.owner_display ?? ""}</small></td>
@@ -470,17 +474,13 @@
             <td class="pts">${b ? fmt(b.points) : (moreTeams ? "—" : "—")}</td>
             <td>${winnerText}</td>
           `;
-
-          // A hidden row for the summary text & two-column players if exactly two teams
           const summaryRow = document.createElement("tr");
           summaryRow.classList.add("matchup-summary");
           summaryRow.style.display = "none";
           const summaryCell = document.createElement("td");
           summaryCell.colSpan = 6;
           const summaryText = allSummaries?.[week]?.[m.matchup_id] || "Placeholder matchup summary text goes here.";
-
           if (!moreTeams) {
-            // Build two-column layout for Team A/B starters as small pills
             const aStartersHtml = (a.starters || [])
               .map(s => {
                 const [pid, fullName] = s.split(" // ");
@@ -489,7 +489,6 @@
                 return `<span class="pill">${name} (${fmt(points)} pts)</span>`;
               })
               .join(" ");
-
             const bStartersHtml = (b.starters || [])
               .map(s => {
                 const [pid, fullName] = s.split(" // ");
@@ -498,7 +497,6 @@
                 return `<span class="pill">${name} (${fmt(points)} pts)</span>`;
               })
               .join(" ");
-
             const matchupDetailHTML = `
               <div style="margin-top:8px; display:flex; gap:16px;">
                 <div style="flex:1; min-width:0;">
@@ -520,14 +518,10 @@
               ${matchupDetailHTML}
             `;
           } else {
-            // Multi-team matchups: keep original text
             summaryCell.innerHTML = `<p style="margin:8px 0;">${summaryText}</p>`;
           }
-
           summaryRow.appendChild(summaryCell);
           tbody.appendChild(tr);
-
-          // If there are more than two teams in a single matchup, show them in an extra row
           if (moreTeams) {
             const tr2 = document.createElement("tr");
             const col = document.createElement("td");
@@ -539,27 +533,19 @@
           }
           tbody.appendChild(summaryRow);
         }
-
         table.appendChild(tbody);
         wrapper.appendChild(table);
         details.appendChild(wrapper);
         els.weeksContainer.appendChild(details);
       });
     }
-
     async function load() {
       clearError();
       els.subtitle.textContent = "Fetching data...";
       els.raw.textContent = "Loading…";
-
       try {
-        // 1. Get external matchup summaries (optional)
         summariesData = await fetchSummaries();
-
-        // 2. Fetch all NFL player data for name lookups (so we can comment their names)
         allPlayersData = await fetchJson(`${BASE}/players/nfl`);
-
-        // 3. Get current NFL state
         const state = await fetchJson(`${BASE}/state/nfl`);
         const { season, season_type, week } = state || {};
         els.metaPill.textContent = `Season: ${season ?? "—"} · Week: ${week ?? "—"} (${season_type || "—"})`;
@@ -568,13 +554,11 @@
           els.raw.textContent = "[]";
           return;
         }
-
-        // 4. Fetch league users & rosters for team mappings
+        els.subtitle.textContent = `Fetching matchups for Weeks 1 → ${week}…`;
         const [users, rosters] = await Promise.all([
           fetchJson(`${BASE}/league/${LEAGUE_ID}/users`),
           fetchJson(`${BASE}/league/${LEAGUE_ID}/rosters`)
         ]);
-
         const userById = new Map((users || []).map(u => [u.user_id, u]));
         const rosterToUser = new Map((rosters || []).map(r => [r.roster_id, r.owner_id]));
         const nameByRoster = new Map();
@@ -584,10 +568,6 @@
           nameByRoster.set(rid, deriveTeamName(user));
           ownerDisplayByRoster.set(rid, user?.display_name || user?.username || "Unknown Manager");
         }
-
-        els.subtitle.textContent = `Fetching matchups for Weeks 1 → ${week}…`;
-
-        // 5. Load matchups from week 1 to current
         const weeks = Array.from({ length: week }, (_, i) => i + 1);
         const results = [];
         const CONCURRENCY = 4;
@@ -603,24 +583,18 @@
         }
         await Promise.all(Array.from({ length: CONCURRENCY }, worker));
         results.sort((a,b) => a.week - b.week);
-
-        // 6. Combine into a single array
         const combined = [];
         for (const { week: wk, data } of results) {
-          // group matchups by their matchup_id
           const groups = new Map();
           for (const itm of (data || [])) {
             const mid = itm.matchup_id ?? -1;
             if (!groups.has(mid)) groups.set(mid, []);
             groups.get(mid).push(itm);
           }
-
-          // For each matchup, build a teams array with points and ID strings that include the player name
           for (const [mid, arr] of groups.entries()) {
             const teams = arr.map(t => {
               const rid = t.roster_id;
               const pts = effectivePoints(t);
-              // Build player_points if available
               const playersPoints = t.players_points || {};
               return {
                 roster_id: rid,
@@ -628,16 +602,12 @@
                 owner_display: ownerDisplayByRoster.get(rid) || "",
                 points: typeof pts === "number" ? Math.round(pts * 100) / 100 : pts,
                 players_points: playersPoints,
-                // Add the player's full name after each ID
                 starters: (t.starters || []).map(pid => `${pid} // ${allPlayersData[pid]?.full_name ?? 'defense'}`),
                 players: (t.players || []).map(pid => `${pid} // ${allPlayersData[pid]?.full_name ?? 'defense'}`)
               };
             });
-
-            // Compute winners
             const top = Math.max(...teams.map(x => x.points ?? 0));
             const winners = teams.filter(x => (x.points ?? 0) === top).map(x => x.roster_id);
-
             combined.push({
               season,
               week: wk,
@@ -647,8 +617,6 @@
             });
           }
         }
-
-        // 7. Render weeks + show JSON
         const groupedByWeek = combined.reduce((acc, m) => {
           (acc[m.week] ||= []).push(m);
           return acc;
@@ -656,14 +624,10 @@
         for (const wk in groupedByWeek) {
           groupedByWeek[wk].sort((a,b) => (a.matchup_id ?? 0) - (b.matchup_id ?? 0));
         }
-
         renderWeeks(groupedByWeek, summariesData.summaries);
-
         els.countPill.textContent = `Matchups: ${combined.length}`;
         els.raw.textContent = JSON.stringify(combined, null, 2);
         els.subtitle.textContent = `Loaded ${combined.length} matchup rows from Week 1 → ${week}.`;
-
-        // 8. Setup JSON & CSV download
         els.downloadJsonBtn.onclick = () => download(
           `sleeper_matchups_${season}_through_w${week}.json`,
           "application/json",
@@ -675,7 +639,6 @@
           "text/csv",
           csvRows.length ? toCSV(csvRows) : ""
         );
-
       } catch (err) {
         console.error(err);
         showError(`<div class="err">Error</div>
@@ -685,16 +648,10 @@
         els.raw.textContent = "[]";
       }
     }
-
-    // Theme toggle button
     els.themeToggleBtn.addEventListener("click", () => {
       document.documentElement.classList.toggle('light');
     });
-
-    // Refresh logic
     els.refreshBtn.addEventListener("click", load);
-
-    // Initial load
     load();
   })();
   </script>
