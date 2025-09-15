@@ -713,7 +713,8 @@
         return;
       }
 
-      let allScores = []; 
+      // 1) TEAM RECORDS
+      let allScores = []; // { roster_id, team_name, points, week }
       let streakTracker = new Map();
 
       for (const m of combined) {
@@ -794,30 +795,104 @@
         }
       }
 
+      // 2) PLAYER RECORDS (highest single-game for overall and by position)
+      // We'll scan "starters" across all matchups
+      // structure: bestPlayers.overall = { name, position, points, week }
+      // and bestPlayers.QB, bestPlayers.RB, etc.
+      const bestPlayers = {
+        overall: { pid: null, name: "", position: "", points: 0, week: null },
+        QB:     { pid: null, name: "", position: "QB", points: 0, week: null },
+        RB:     { pid: null, name: "", position: "RB", points: 0, week: null },
+        WR:     { pid: null, name: "", position: "WR", points: 0, week: null },
+        TE:     { pid: null, name: "", position: "TE", points: 0, week: null }
+        // You can add more positions if desired, e.g. K, DEF, etc.
+      };
+
+      for (const match of combined) {
+        const { week } = match;
+        for (const team of match.teams) {
+          // For each starter, find that player's points and compare
+          // Remember each starter is "pid // Full Name".
+          for (const s of (team.starters || [])) {
+            const [pid, fullName] = s.split(" // ");
+            const pts = (team.players_points || {})[pid] ?? 0;
+            const player = allPlayersData[pid];
+            if (!player) continue; 
+            const pos = player.position || "UNK";
+            // Overall
+            if (pts > bestPlayers.overall.points) {
+              bestPlayers.overall = {
+                pid, name: fullName, position: pos, points: pts, week
+              };
+            }
+            // Position-based
+            if (bestPlayers[pos] && pts > bestPlayers[pos].points) {
+              bestPlayers[pos] = {
+                pid, name: fullName, position: pos, points: pts, week
+              };
+            }
+          }
+        }
+      }
+
+      // Render the records
       const recordsList = document.getElementById('recordsList');
-      // Use the same avatarAndName helper so we include avatars here, too
-      function recordLine(label, info) {
-        if (!info) return "";
-        const avatarSnippet = avatarAndName(info.roster_id, info.team_name);
-        return `<li><strong>${label}:</strong> ${avatarSnippet}</li>`;
+
+      function recordHeader(txt) {
+        return `<li style="font-size:17px; margin:12px 0 6px; font-weight:700;">${txt}</li>`;
       }
 
       recordsList.innerHTML = `
-        <li><strong>All-Time High Scorer (Current Season):</strong> 
-          ${avatarAndName(highestSingle.roster_id, highestSingle.team_name)} 
+        <!-- TEAM RECORDS -->
+        ${recordHeader("TEAM RECORDS")}
+        <li style="font-size:15px; margin-bottom:8px;">
+          <strong>🥇 Highest Single-Game Score (Team):</strong>
+          ${avatarAndName(highestSingle.roster_id, highestSingle.team_name)}
           with ${fmt(highestSingle.points)} pts (Week ${highestSingle.week || '–'})
         </li>
-        <li><strong>All-Time Low Scorer (Current Season):</strong> 
+        <li style="font-size:15px; margin-bottom:8px;">
+          <strong>💩 Lowest Single-Game Score (Team):</strong>
           ${avatarAndName(lowestSingle.roster_id, lowestSingle.team_name)}
           with ${fmt(lowestSingle.points)} pts (Week ${lowestSingle.week || '–'})
         </li>
-        <li><strong>Best Winning Streak:</strong> 
-          ${avatarAndName(bestStreak.roster_id, bestStreak.team_name)} 
+        <li style="font-size:15px; margin-bottom:8px;">
+          <strong>🥇 Best Winning Streak (Team):</strong>
+          ${avatarAndName(bestStreak.roster_id, bestStreak.team_name)}
           with ${bestStreak.value} consecutive win(s)
         </li>
-        <li><strong>Worst Losing Streak:</strong> 
+        <li style="font-size:15px; margin-bottom:8px;">
+          <strong>💩 Worst Losing Streak (Team):</strong>
           ${avatarAndName(worstStreak.roster_id, worstStreak.team_name)}
           with ${worstStreak.value} consecutive loss(es)
+        </li>
+
+        <!-- PLAYER RECORDS -->
+        ${recordHeader("PLAYER RECORDS")}
+        <li style="font-size:15px; margin-bottom:8px;">
+          <strong>🥇 Top Single-Game (All Positions):</strong>
+          ${bestPlayers.overall.name} (${bestPlayers.overall.position})
+          with ${fmt(bestPlayers.overall.points)} pts (Week ${bestPlayers.overall.week || '–'})
+        </li>
+        <!-- Then each position -->
+        <li style="font-size:15px; margin-bottom:8px;">
+          <strong>QB 🏆 Highest Single-Game:</strong>
+          ${bestPlayers.QB.name || '—'} 
+          with ${fmt(bestPlayers.QB.points)} pts (Week ${bestPlayers.QB.week || '–'})
+        </li>
+        <li style="font-size:15px; margin-bottom:8px;">
+          <strong>RB 🏆 Highest Single-Game:</strong>
+          ${bestPlayers.RB.name || '—'}
+          with ${fmt(bestPlayers.RB.points)} pts (Week ${bestPlayers.RB.week || '–'})
+        </li>
+        <li style="font-size:15px; margin-bottom:8px;">
+          <strong>WR 🏆 Highest Single-Game:</strong>
+          ${bestPlayers.WR.name || '—'} 
+          with ${fmt(bestPlayers.WR.points)} pts (Week ${bestPlayers.WR.week || '–'})
+        </li>
+        <li style="font-size:15px; margin-bottom:8px;">
+          <strong>TE 🏆 Highest Single-Game:</strong>
+          ${bestPlayers.TE.name || '—'} 
+          with ${fmt(bestPlayers.TE.points)} pts (Week ${bestPlayers.TE.week || '–'})
         </li>
       `;
     }
