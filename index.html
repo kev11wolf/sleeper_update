@@ -312,6 +312,8 @@
     const SUMMARY_JSON_URL = "summaries.json";
     let summariesData = {};
     let allPlayersData = {};
+    // We'll store each roster's avatar URL in a map for easy lookup anywhere we display team names
+    const rosterToAvatar = new Map();
 
     async function fetchSummaries() {
       try {
@@ -422,6 +424,13 @@
       return rows;
     }
 
+    // Helper to return avatar snippet + team name, with a consistent style
+    function avatarAndName(rid, teamName) {
+      const url = rosterToAvatar.get(rid) || "";
+      if (!url) return teamName; // no avatar available
+      return `<img src="${url}" alt="${teamName} avatar" style="width:20px; height:20px; border-radius:50%; margin-right:4px;">${teamName}`;
+    }
+
     function renderWeeks(grouped, allSummaries) {
       els.weeksContainer.innerHTML = "";
       const weeks = Object.keys(grouped).map(n => Number(n)).sort((a,b) => a-b);
@@ -456,6 +465,7 @@
         tbody.style.overflow = 'auto';
         tbody.style.maxHeight = '300px';
         tbody.style.width = '100%';
+
         for (const m of list) {
           const teams = [...m.teams].sort((a,b) => a.roster_id - b.roster_id);
           const a = teams[0], b = teams[1];
@@ -463,14 +473,6 @@
           const highest = Math.max(...teams.map(t => t.points ?? 0));
           const winners = teams.filter(t => (t.points ?? 0) === highest);
           const isTie = winners.length > 1;
-
-          // Create avatar HTML if available
-          const aAvatar = a?.avatar_url
-            ? `<img src="${a.avatar_url}" alt="${a.team_name} avatar" style="width:20px; height:20px; border-radius:50%; margin-right:4px;">`
-            : "";
-          const bAvatar = b?.avatar_url
-            ? `<img src="${b.avatar_url}" alt="${b.team_name} avatar" style="width:20px; height:20px; border-radius:50%; margin-right:4px;">`
-            : "";
 
           const tr = document.createElement("tr");
           tr.style.overflow = 'auto';
@@ -483,21 +485,22 @@
               nextRow.style.display = nextRow.style.display === "table-row" ? "none" : "table-row";
             }
           };
+
           const winnerText = isTie
             ? `<span class="tie">Tie (${fmt(highest)})</span>`
             : `<span class="win">${winners[0]?.team_name || "—"}</span>`;
+
           tr.innerHTML = `
             <td class="mono">#${m.matchup_id}</td>
-            <td class="team">${aAvatar}${a ? a.team_name : "—"}<br><small class="muted">${a?.owner_display ?? ""}</small></td>
+            <td class="team">${avatarAndName(a?.roster_id, a?.team_name || "—")}<br><small class="muted">${a?.owner_display ?? ""}</small></td>
             <td class="pts">${a ? fmt(a.points) : "—"}</td>
-            <td class="team">
-              ${bAvatar}
-              ${b ? b.team_name : (moreTeams ? "(3+ team matchup)" : "—")}
+            <td class="team">${avatarAndName(b?.roster_id, b ? b.team_name : (moreTeams ? "(3+ team matchup)" : "—"))}
               <br><small class="muted">${b?.owner_display ?? ""}</small>
             </td>
             <td class="pts">${b ? fmt(b.points) : (moreTeams ? "—" : "—")}</td>
             <td>${winnerText}</td>
           `;
+
           const summaryRow = document.createElement("tr");
           summaryRow.classList.add("matchup-summary");
           summaryRow.style.display = "none";
@@ -506,18 +509,10 @@
           const summaryText = allSummaries?.[week]?.[m.matchup_id] || "Placeholder matchup summary text goes here.";
 
           if (!moreTeams) {
-            // Add avatar in summary row headers, if available
-            const aTeamHeaderAvatar = a?.avatar_url
-              ? `<img src="${a.avatar_url}" style="width:20px; height:20px; border-radius:50%; margin-right:4px;">`
-              : "";
-            const bTeamHeaderAvatar = b?.avatar_url
-              ? `<img src="${b.avatar_url}" style="width:20px; height:20px; border-radius:50%; margin-right:4px;">`
-              : "";
-
             const aStartersHtml = (a.starters || [])
               .map(s => {
                 const [pid, fullName] = s.split(" // ");
-                const name = fullName || "Defense";
+                const name = fullName || "defense";
                 const points = (m.teams.find(x => x.roster_id === a.roster_id)?.players_points || {})[pid] ?? 0;
                 return `<span class="pill">${name} (${fmt(points)} pts)</span>`;
               })
@@ -530,16 +525,18 @@
                 return `<span class="pill">${name} (${fmt(points)} pts)</span>`;
               })
               .join(" ");
+
+            // Use avatarAndName helper in summary row too
             const matchupDetailHTML = `
               <div style="margin-top:8px; display:flex; gap:16px;">
                 <div style="flex:1; min-width:0;">
-                  <strong>${aTeamHeaderAvatar}${a.team_name} Starters</strong>
+                  <strong>${avatarAndName(a.roster_id, a.team_name)} Starters</strong>
                   <div style="margin:6px 0; display:flex; flex-wrap:wrap; gap:4px;">
                     ${aStartersHtml}
                   </div>
                 </div>
                 <div style="flex:1; min-width:0;">
-                  <strong>${bTeamHeaderAvatar}${b.team_name} Starters</strong>
+                  <strong>${avatarAndName(b.roster_id, b.team_name)} Starters</strong>
                   <div style="margin:6px 0; display:flex; flex-wrap:wrap; gap:4px;">
                     ${bStartersHtml}
                   </div>
@@ -555,6 +552,7 @@
           }
           summaryRow.appendChild(summaryCell);
           tbody.appendChild(tr);
+
           if (moreTeams) {
             const tr2 = document.createElement("tr");
             const col = document.createElement("td");
@@ -599,10 +597,18 @@
         const rosterToUser = new Map((rosters || []).map(r => [r.roster_id, r.owner_id]));
         const nameByRoster = new Map();
         const ownerDisplayByRoster = new Map();
+
+        // Fill maps for name, owner display, and avatar
         for (const [rid, uid] of rosterToUser.entries()) {
           const user = userById.get(uid);
-          nameByRoster.set(rid, deriveTeamName(user));
+          const teamName = deriveTeamName(user);
+          nameByRoster.set(rid, teamName);
           ownerDisplayByRoster.set(rid, user?.display_name || user?.username || "Unknown Manager");
+          if (user?.avatar) {
+            // Build final avatar URL from user.avatar
+            const url = `https://sleepercdn.com/avatars/thumbs/${user.avatar}`;
+            rosterToAvatar.set(rid, url);
+          }
         }
 
         const weeks = Array.from({ length: week }, (_, i) => i + 1);
@@ -635,11 +641,9 @@
               const pts = effectivePoints(t);
               const userId = rosterToUser.get(rid);
               const user = userById.get(userId);
-              // Minimal addition: store avatar URL if available
               const avatar_url = user?.avatar
                 ? `https://sleepercdn.com/avatars/thumbs/${user.avatar}`
                 : "";
-
               return {
                 roster_id: rid,
                 team_name: nameByRoster.get(rid) || `Roster ${rid}`,
@@ -709,16 +713,13 @@
         return;
       }
 
-      // We'll identify single highest/lowest game scores and best/worst streaks for the current season
-      let allScores = []; // { roster_id, team_name, points, week }
-      // structure for tracking streaks
+      let allScores = []; 
       let streakTracker = new Map();
 
-      // Populate arrays
       for (const m of combined) {
         const highest = Math.max(...m.teams.map(t => t.points ?? 0));
         const winners = m.teams.filter(t => (t.points ?? 0) === highest);
-        const tie = winners.length > 1 ? true : false;
+        const tie = winners.length > 1;
         for (const t of m.teams) {
           allScores.push({
             roster_id: t.roster_id,
@@ -736,7 +737,6 @@
             });
           }
           const data = streakTracker.get(t.roster_id);
-          // Determine result
           let result = 'L';
           if (tie && winners.map(x=>x.roster_id).includes(t.roster_id)) {
             result = 'T';
@@ -744,7 +744,6 @@
             result = 'W';
           }
 
-          // Update streak logic
           if (result === 'W') {
             if (data.lastResult === 'W') {
               data.currentStreak += 1;
@@ -770,12 +769,9 @@
         }
       }
 
-      // Highest single-week game
       let highestSingle = allScores.reduce((a,b) => b.points > a.points ? b : a, { points: -Infinity });
-      // Lowest single-week game
       let lowestSingle = allScores.reduce((a,b) => b.points < a.points ? b : a, { points: Infinity });
 
-      // Best and worst streak
       let bestStreak = { roster_id: 0, team_name: 'N/A', value: 0 };
       let worstStreak = { roster_id: 0, team_name: 'N/A', value: 0 };
 
@@ -799,11 +795,30 @@
       }
 
       const recordsList = document.getElementById('recordsList');
+      // Use the same avatarAndName helper so we include avatars here, too
+      function recordLine(label, info) {
+        if (!info) return "";
+        const avatarSnippet = avatarAndName(info.roster_id, info.team_name);
+        return `<li><strong>${label}:</strong> ${avatarSnippet}</li>`;
+      }
+
       recordsList.innerHTML = `
-        <li><strong>All-Time High Scorer (Current Season):</strong> ${highestSingle.team_name} with ${fmt(highestSingle.points)} pts (Week ${highestSingle.week || '–'})</li>
-        <li><strong>All-Time Low Scorer (Current Season):</strong> ${lowestSingle.team_name} with ${fmt(lowestSingle.points)} pts (Week ${lowestSingle.week || '–'})</li>
-        <li><strong>Best Winning Streak:</strong> ${bestStreak.team_name} with ${bestStreak.value} consecutive win(s)</li>
-        <li><strong>Worst Losing Streak:</strong> ${worstStreak.team_name} with ${worstStreak.value} consecutive loss(es)</li>
+        <li><strong>All-Time High Scorer (Current Season):</strong> 
+          ${avatarAndName(highestSingle.roster_id, highestSingle.team_name)} 
+          with ${fmt(highestSingle.points)} pts (Week ${highestSingle.week || '–'})
+        </li>
+        <li><strong>All-Time Low Scorer (Current Season):</strong> 
+          ${avatarAndName(lowestSingle.roster_id, lowestSingle.team_name)}
+          with ${fmt(lowestSingle.points)} pts (Week ${lowestSingle.week || '–'})
+        </li>
+        <li><strong>Best Winning Streak:</strong> 
+          ${avatarAndName(bestStreak.roster_id, bestStreak.team_name)} 
+          with ${bestStreak.value} consecutive win(s)
+        </li>
+        <li><strong>Worst Losing Streak:</strong> 
+          ${avatarAndName(worstStreak.roster_id, worstStreak.team_name)}
+          with ${worstStreak.value} consecutive loss(es)
+        </li>
       `;
     }
 
