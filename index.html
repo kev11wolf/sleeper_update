@@ -200,7 +200,8 @@
       position: sticky;
       top: 0;
       background: var(--panel);
-      z-index: 1
+      z-index: 1;
+      cursor: pointer; /* We'll allow clicking for sorting */
     }
     .team {
       display: flex;
@@ -512,7 +513,7 @@
             const aStartersHtml = (a.starters || [])
               .map(s => {
                 const [pid, fullName] = s.split(" // ");
-                const name = fullName || "Defense";
+                const name = fullName || "defense";
                 const points = (m.teams.find(x => x.roster_id === a.roster_id)?.players_points || {})[pid] ?? 0;
                 return `<span class="pill">${name} (${fmt(points)} pts)</span>`;
               })
@@ -520,7 +521,7 @@
             const bStartersHtml = (b.starters || [])
               .map(s => {
                 const [pid, fullName] = s.split(" // ");
-                const name = fullName || "Defense";
+                const name = fullName || "defense";
                 const points = (m.teams.find(x => x.roster_id === b.roster_id)?.players_points || {})[pid] ?? 0;
                 return `<span class="pill">${name} (${fmt(points)} pts)</span>`;
               })
@@ -650,8 +651,8 @@
                 owner_display: ownerDisplayByRoster.get(rid) || "",
                 points: typeof pts === "number" ? Math.round(pts * 100) / 100 : pts,
                 players_points: t.players_points || {},
-                starters: (t.starters || []).map(pid => `${pid} // ${allPlayersData[pid]?.full_name ?? 'Defense'}`),
-                players: (t.players || []).map(pid => `${pid} // ${allPlayersData[pid]?.full_name ?? 'Defense'}`),
+                starters: (t.starters || []).map(pid => `${pid} // ${allPlayersData[pid]?.full_name ?? 'defense'}`),
+                players: (t.players || []).map(pid => `${pid} // ${allPlayersData[pid]?.full_name ?? 'defense'}`),
                 avatar_url
               };
             });
@@ -717,10 +718,18 @@
       let allScores = []; // { roster_id, team_name, points, week }
       let streakTracker = new Map();
 
+      // We'll also need PF (Points For) and PA (Points Against) for standings
+      // standingsMap: { [roster_id]: { w:0, l:0, t:0, pf:0, pa:0, team_name: string } }
+      let standingsMap = new Map();
+
       for (const m of combined) {
         const highest = Math.max(...m.teams.map(t => t.points ?? 0));
         const winners = m.teams.filter(t => (t.points ?? 0) === highest);
         const tie = winners.length > 1;
+
+        let allRosterIds = m.teams.map(t => t.roster_id);
+        let rosterPointsMap = new Map(m.teams.map(t => [t.roster_id, t.points ?? 0]));
+
         for (const t of m.teams) {
           allScores.push({
             roster_id: t.roster_id,
@@ -728,16 +737,35 @@
             points: t.points,
             week: m.week
           });
+
+          if (!standingsMap.has(t.roster_id)) {
+            standingsMap.set(t.roster_id, {
+              w: 0, l: 0, t: 0, pf: 0, pa: 0, team_name: t.team_name
+            });
+          }
+          let dataSt = standingsMap.get(t.roster_id);
+          dataSt.pf += (t.points ?? 0);
+
+          let oppSum = 0;
+          for (const rid of allRosterIds) {
+            if (rid !== t.roster_id) {
+              oppSum += (rosterPointsMap.get(rid) ?? 0);
+            }
+          }
+          dataSt.pa += oppSum;
+          standingsMap.set(t.roster_id, dataSt);
+
           if (!streakTracker.has(t.roster_id)) {
             streakTracker.set(t.roster_id, {
               currentStreak: 0,
               bestStreak: 0,
               loseStreak: 0,
               worstStreak: 0,
-              lastResult: null
+              lastResult: null 
             });
           }
-          const data = streakTracker.get(t.roster_id);
+          let dataStreak = streakTracker.get(t.roster_id);
+
           let result = 'L';
           if (tie && winners.map(x=>x.roster_id).includes(t.roster_id)) {
             result = 'T';
@@ -746,27 +774,36 @@
           }
 
           if (result === 'W') {
-            if (data.lastResult === 'W') {
-              data.currentStreak += 1;
-            } else {
-              data.currentStreak = 1;
-            }
-            data.bestStreak = Math.max(data.bestStreak, data.currentStreak);
-            data.loseStreak = 0;
-          } else if (result === 'L') {
-            if (data.lastResult === 'L') {
-              data.loseStreak += 1;
-            } else {
-              data.loseStreak = 1;
-            }
-            data.worstStreak = Math.max(data.worstStreak, data.loseStreak);
-            data.currentStreak = 0;
+            dataSt.w++;
+          } else if (result === 'T') {
+            dataSt.t++;
           } else {
-            data.currentStreak = 0;
-            data.loseStreak = 0;
+            dataSt.l++;
           }
-          data.lastResult = result;
-          streakTracker.set(t.roster_id, data);
+          standingsMap.set(t.roster_id, dataSt);
+
+          if (result === 'W') {
+            if (dataStreak.lastResult === 'W') {
+              dataStreak.currentStreak += 1;
+            } else {
+              dataStreak.currentStreak = 1;
+            }
+            dataStreak.bestStreak = Math.max(dataStreak.bestStreak, dataStreak.currentStreak);
+            dataStreak.loseStreak = 0;
+          } else if (result === 'L') {
+            if (dataStreak.lastResult === 'L') {
+              dataStreak.loseStreak += 1;
+            } else {
+              dataStreak.loseStreak = 1;
+            }
+            dataStreak.worstStreak = Math.max(dataStreak.worstStreak, dataStreak.loseStreak);
+            dataStreak.currentStreak = 0;
+          } else {
+            dataStreak.currentStreak = 0;
+            dataStreak.loseStreak = 0;
+          }
+          dataStreak.lastResult = result;
+          streakTracker.set(t.roster_id, dataStreak);
         }
       }
 
@@ -782,50 +819,42 @@
         if (stats.bestStreak > bestStreak.value) {
           bestStreak = {
             roster_id: rid,
-            team_name: allScores.find(x => x.roster_id===rid)?.team_name || `Roster ${rid}`,
+            team_name: standingsMap.get(rid)?.team_name || `Roster ${rid}`,
             value: stats.bestStreak
           };
         }
         if (stats.worstStreak > worstStreak.value) {
           worstStreak = {
             roster_id: rid,
-            team_name: allScores.find(x => x.roster_id===rid)?.team_name || `Roster ${rid}`,
+            team_name: standingsMap.get(rid)?.team_name || `Roster ${rid}`,
             value: stats.worstStreak
           };
         }
       }
 
       // 2) PLAYER RECORDS (highest single-game for overall and by position)
-      // We'll scan "starters" across all matchups
-      // structure: bestPlayers.overall = { name, position, points, week }
-      // and bestPlayers.QB, bestPlayers.RB, etc.
       const bestPlayers = {
         overall: { pid: null, name: "", position: "", points: 0, week: null },
         QB:     { pid: null, name: "", position: "QB", points: 0, week: null },
         RB:     { pid: null, name: "", position: "RB", points: 0, week: null },
         WR:     { pid: null, name: "", position: "WR", points: 0, week: null },
         TE:     { pid: null, name: "", position: "TE", points: 0, week: null }
-        // You can add more positions if desired, e.g. K, DEF, etc.
       };
 
       for (const match of combined) {
         const { week } = match;
         for (const team of match.teams) {
-          // For each starter, find that player's points and compare
-          // Remember each starter is "pid // Full Name".
           for (const s of (team.starters || [])) {
             const [pid, fullName] = s.split(" // ");
             const pts = (team.players_points || {})[pid] ?? 0;
             const player = allPlayersData[pid];
             if (!player) continue; 
             const pos = player.position || "UNK";
-            // Overall
             if (pts > bestPlayers.overall.points) {
               bestPlayers.overall = {
                 pid, name: fullName, position: pos, points: pts, week
               };
             }
-            // Position-based
             if (bestPlayers[pos] && pts > bestPlayers[pos].points) {
               bestPlayers[pos] = {
                 pid, name: fullName, position: pos, points: pts, week
@@ -835,9 +864,7 @@
         }
       }
 
-      // Render the records
       const recordsList = document.getElementById('recordsList');
-
       function recordHeader(txt) {
         return `<li style="font-size:17px; margin:12px 0 6px; font-weight:700;">${txt}</li>`;
       }
@@ -873,7 +900,6 @@
           ${bestPlayers.overall.name} (${bestPlayers.overall.position})
           with ${fmt(bestPlayers.overall.points)} pts (Week ${bestPlayers.overall.week || '–'})
         </li>
-        <!-- Then each position -->
         <li style="font-size:15px; margin-bottom:8px;">
           <strong>QB 🏆 Highest Single-Game:</strong>
           ${bestPlayers.QB.name || '—'} 
@@ -895,6 +921,137 @@
           with ${fmt(bestPlayers.TE.points)} pts (Week ${bestPlayers.TE.week || '–'})
         </li>
       `;
+
+      // Standings Collapsible
+      const standingsDetails = document.createElement("details");
+      standingsDetails.open = false; // collapsed by default
+      const standingsSummary = document.createElement("summary");
+      standingsSummary.textContent = "Standings";
+      standingsDetails.appendChild(standingsSummary);
+
+      let allTeams = [...standingsMap.values()];
+      // Sort by number of wins, then PF as a tiebreak
+      allTeams.sort((a,b) => {
+        const winDiff = b.w - a.w;
+        if (winDiff !== 0) return winDiff;
+        return b.pf - a.pf;
+      });
+
+      const totalTeams = allTeams.length;
+      const cutoff = totalTeams > 6 ? 6 : Math.round(totalTeams / 2);
+
+      // Build a small table for the standings
+      const standingsDiv = document.createElement("div");
+      standingsDiv.style.marginTop = "10px";
+
+      const tableHtml = `
+        <table style="width:100%; border-collapse:collapse; margin-top:8px;" id="standingsTable">
+          <thead>
+            <tr>
+              <th data-col="team">Team</th>
+              <th data-col="record">W-L-T</th>
+              <th data-col="pf">PF</th>
+              <th data-col="pa">PA</th>
+              <th data-col="playoff">Playoff Consideration</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${allTeams.map((tm, idx) => {
+              const record = `${tm.w}-${tm.l}-${tm.t}`;
+              const playoffStatus = (idx < cutoff)
+                ? "In Playoff Hunt"
+                : "Outside Looking In";
+              return `
+                <tr>
+                  <td class="team-col">${avatarAndName(null, tm.team_name)}</td>
+                  <td class="record-col">${record}</td>
+                  <td class="pf-col">${fmt(tm.pf)}</td>
+                  <td class="pa-col">${fmt(tm.pa)}</td>
+                  <td class="playoffs-col">${playoffStatus}</td>
+                </tr>`;
+            }).join("")}
+          </tbody>
+        </table>
+      `;
+      standingsDiv.innerHTML = tableHtml;
+      standingsDetails.appendChild(standingsDiv);
+
+      document.getElementById("recordsList").appendChild(standingsDetails);
+
+      // Attach sorting to each column header
+      const standingsTable = standingsDiv.querySelector("#standingsTable");
+      const ths = standingsTable.querySelectorAll("thead th[data-col]");
+      ths.forEach((th) => {
+        th.addEventListener("click", () => {
+          const colType = th.getAttribute("data-col"); 
+          sortStandings(standingsTable, colType, th);
+        });
+      });
+    }
+
+    // Keep track of sorted states (asc/desc) for columns
+    const standingsSortState = {};
+
+    // Sort logic
+    function sortStandings(table, colType, thElement) {
+      // Toggle ascending/descending
+      if (!standingsSortState[colType]) {
+        standingsSortState[colType] = 'asc';
+      } else {
+        standingsSortState[colType] = standingsSortState[colType] === 'asc' ? 'desc' : 'asc';
+      }
+
+      const direction = standingsSortState[colType];
+      const rows = Array.from(table.querySelectorAll("tbody tr"));
+      
+      rows.sort((a, b) => {
+        const getText = (row, sel) => (row.querySelector(sel)?.textContent || "").trim();
+
+        if (colType === 'team') {
+          // Alphabetical string compare
+          const ta = getText(a, ".team-col").toLowerCase();
+          const tb = getText(b, ".team-col").toLowerCase();
+          return ta.localeCompare(tb) * (direction === 'asc' ? 1 : -1);
+        }
+        else if (colType === 'record') {
+          // parse W-L-T
+          const recA = getText(a, ".record-col").split("-").map(Number);
+          const recB = getText(b, ".record-col").split("-").map(Number);
+          // We'll primarily sort by W, then by T, then by L
+          // so that 5-1-0 outranks 4-2-0, etc.
+          // We'll combine them in a single numeric measure W*1000 + T, or do a direct compare
+          const [wA, lA, tA] = recA;
+          const [wB, lB, tB] = recB;
+          // function that returns a measure:
+          // the bigger the measure, the better the record
+          const measureA = wA * 1000 + tA * 10 - lA; 
+          const measureB = wB * 1000 + tB * 10 - lB;
+          return (measureA - measureB) * (direction === 'asc' ? 1 : -1);
+        }
+        else if (colType === 'pf') {
+          // numeric parse
+          const pfA = parseFloat(getText(a, ".pf-col") || "0");
+          const pfB = parseFloat(getText(b, ".pf-col") || "0");
+          return (pfA - pfB) * (direction === 'asc' ? 1 : -1);
+        }
+        else if (colType === 'pa') {
+          // numeric parse
+          const paA = parseFloat(getText(a, ".pa-col") || "0");
+          const paB = parseFloat(getText(b, ".pa-col") || "0");
+          return (paA - paB) * (direction === 'asc' ? 1 : -1);
+        }
+        else if (colType === 'playoff') {
+          // alphabetical
+          const playA = getText(a, ".playoffs-col").toLowerCase();
+          const playB = getText(b, ".playoffs-col").toLowerCase();
+          return playA.localeCompare(playB) * (direction === 'asc' ? 1 : -1);
+        }
+        return 0;
+      });
+
+      // Re-append the sorted rows
+      const tbody = table.querySelector("tbody");
+      rows.forEach(r => tbody.appendChild(r));
     }
 
     els.themeToggleBtn.addEventListener("click", () => {
