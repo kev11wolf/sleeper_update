@@ -288,6 +288,13 @@
         Welcome to NFL Week 2, where the injury bug is already throwing a bigger party than your average tailgate—Packers’ Zach Tom (hip) and Aaron Banks (ankle/groin) are questionable, while the 49ers might be without Brock Purdy (shoulder/toe) and George Kittle, so expect Mac Jones to possibly relive his Alabama glory days in New Orleans. Keep an eye on the Commanders and Packers, both 1-0 and strutting into Thursday night like they’ve already booked their Super Bowl suites, with Jayden Daniels and Edgerrin Cooper ready to trade blows in a matchup spicier than a Lambeau bratwurst. The Browns and Ravens, both licking their Week 1 wounds, face off in a divisional grudge match that promises more drama than a reality TV reunion, especially with Baltimore favored by a whopping 11.5 points. Don’t sleep on the Bills-Jets clash, where Josh Allen’s improbable comeback streak meets Aaron Rodgers’ revenge tour against his old squad—grab the popcorn, it’s gonna be a circus. Betting lines are shifting faster than a running back dodging tacklers, so check those injury reports 90 minutes before kickoff unless you enjoy losing money on a whim. And for the Giants, Brian Daboll’s refusal to commit to Russell Wilson as the Week 2 starter smells like a midseason quarterback controversy brewing—shocker, right?
       </p>
     </div>
+
+    <!-- NEW CARD FOR LEAGUE RECORDS -->
+    <div class="card" style="margin-top:24px;" id="recordsCard">
+      <h3>League Records & Stats</h3>
+      <ul id="recordsList" style="list-style:none; padding-left:0;"></ul>
+    </div>
+
     <div id="weeksContainer" class="stack"></div>
     <h3 style="margin-top:24px; display:none;">Raw (combined) JSON</h3>
     <pre id="raw" aria-live="polite" style="display:none;">—</pre>
@@ -305,6 +312,7 @@
     const SUMMARY_JSON_URL = "summaries.json";
     let summariesData = {};
     let allPlayersData = {};
+
     async function fetchSummaries() {
       try {
         const res = await fetch(SUMMARY_JSON_URL);
@@ -316,6 +324,7 @@
         return { summaries: {} };
       }
     }
+
     const els = {
       subtitle: document.getElementById("subtitle"),
       metaPill: document.getElementById("metaPill"),
@@ -328,6 +337,7 @@
       downloadCsvBtn: document.getElementById("downloadCsvBtn"),
       themeToggleBtn: document.getElementById("themeToggleBtn")
     };
+
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     function fmt(n) {
       if (n === null || n === undefined) return "—";
@@ -411,6 +421,7 @@
       }
       return rows;
     }
+
     function renderWeeks(grouped, allSummaries) {
       els.weeksContainer.innerHTML = "";
       const weeks = Object.keys(grouped).map(n => Number(n)).sort((a,b) => a-b);
@@ -452,6 +463,15 @@
           const highest = Math.max(...teams.map(t => t.points ?? 0));
           const winners = teams.filter(t => (t.points ?? 0) === highest);
           const isTie = winners.length > 1;
+
+          // Create avatar HTML if available
+          const aAvatar = a?.avatar_url
+            ? `<img src="${a.avatar_url}" alt="${a.team_name} avatar" style="width:20px; height:20px; border-radius:50%; margin-right:4px;">`
+            : "";
+          const bAvatar = b?.avatar_url
+            ? `<img src="${b.avatar_url}" alt="${b.team_name} avatar" style="width:20px; height:20px; border-radius:50%; margin-right:4px;">`
+            : "";
+
           const tr = document.createElement("tr");
           tr.style.overflow = 'auto';
           tr.style.maxHeight = '300px';
@@ -468,9 +488,13 @@
             : `<span class="win">${winners[0]?.team_name || "—"}</span>`;
           tr.innerHTML = `
             <td class="mono">#${m.matchup_id}</td>
-            <td class="team">${a ? a.team_name : "—"}<br><small class="muted">${a?.owner_display ?? ""}</small></td>
+            <td class="team">${aAvatar}${a ? a.team_name : "—"}<br><small class="muted">${a?.owner_display ?? ""}</small></td>
             <td class="pts">${a ? fmt(a.points) : "—"}</td>
-            <td class="team">${b ? b.team_name : (moreTeams ? "(3+ team matchup)" : "—")}<br><small class="muted">${b?.owner_display ?? ""}</small></td>
+            <td class="team">
+              ${bAvatar}
+              ${b ? b.team_name : (moreTeams ? "(3+ team matchup)" : "—")}
+              <br><small class="muted">${b?.owner_display ?? ""}</small>
+            </td>
             <td class="pts">${b ? fmt(b.points) : (moreTeams ? "—" : "—")}</td>
             <td>${winnerText}</td>
           `;
@@ -480,7 +504,16 @@
           const summaryCell = document.createElement("td");
           summaryCell.colSpan = 6;
           const summaryText = allSummaries?.[week]?.[m.matchup_id] || "Placeholder matchup summary text goes here.";
+
           if (!moreTeams) {
+            // Add avatar in summary row headers, if available
+            const aTeamHeaderAvatar = a?.avatar_url
+              ? `<img src="${a.avatar_url}" style="width:20px; height:20px; border-radius:50%; margin-right:4px;">`
+              : "";
+            const bTeamHeaderAvatar = b?.avatar_url
+              ? `<img src="${b.avatar_url}" style="width:20px; height:20px; border-radius:50%; margin-right:4px;">`
+              : "";
+
             const aStartersHtml = (a.starters || [])
               .map(s => {
                 const [pid, fullName] = s.split(" // ");
@@ -500,13 +533,13 @@
             const matchupDetailHTML = `
               <div style="margin-top:8px; display:flex; gap:16px;">
                 <div style="flex:1; min-width:0;">
-                  <strong>${a.team_name} Starters</strong>
+                  <strong>${aTeamHeaderAvatar}${a.team_name} Starters</strong>
                   <div style="margin:6px 0; display:flex; flex-wrap:wrap; gap:4px;">
                     ${aStartersHtml}
                   </div>
                 </div>
                 <div style="flex:1; min-width:0;">
-                  <strong>${b.team_name} Starters</strong>
+                  <strong>${bTeamHeaderAvatar}${b.team_name} Starters</strong>
                   <div style="margin:6px 0; display:flex; flex-wrap:wrap; gap:4px;">
                     ${bStartersHtml}
                   </div>
@@ -539,6 +572,7 @@
         els.weeksContainer.appendChild(details);
       });
     }
+
     async function load() {
       clearError();
       els.subtitle.textContent = "Fetching data...";
@@ -549,11 +583,13 @@
         const state = await fetchJson(`${BASE}/state/nfl`);
         const { season, season_type, week } = state || {};
         els.metaPill.textContent = `Season: ${season ?? "—"} · Week: ${week ?? "—"} (${season_type || "—"})`;
+
         if (!week || week < 1) {
           els.subtitle.textContent = `NFL season state loaded. Current week returned as ${week}. No regular-season matchups to fetch yet.`;
           els.raw.textContent = "[]";
           return;
         }
+
         els.subtitle.textContent = `Fetching matchups for Weeks 1 → ${week}…`;
         const [users, rosters] = await Promise.all([
           fetchJson(`${BASE}/league/${LEAGUE_ID}/users`),
@@ -568,6 +604,7 @@
           nameByRoster.set(rid, deriveTeamName(user));
           ownerDisplayByRoster.set(rid, user?.display_name || user?.username || "Unknown Manager");
         }
+
         const weeks = Array.from({ length: week }, (_, i) => i + 1);
         const results = [];
         const CONCURRENCY = 4;
@@ -583,6 +620,7 @@
         }
         await Promise.all(Array.from({ length: CONCURRENCY }, worker));
         results.sort((a,b) => a.week - b.week);
+
         const combined = [];
         for (const { week: wk, data } of results) {
           const groups = new Map();
@@ -595,15 +633,22 @@
             const teams = arr.map(t => {
               const rid = t.roster_id;
               const pts = effectivePoints(t);
-              const playersPoints = t.players_points || {};
+              const userId = rosterToUser.get(rid);
+              const user = userById.get(userId);
+              // Minimal addition: store avatar URL if available
+              const avatar_url = user?.avatar
+                ? `https://sleepercdn.com/avatars/thumbs/${user.avatar}`
+                : "";
+
               return {
                 roster_id: rid,
                 team_name: nameByRoster.get(rid) || `Roster ${rid}`,
                 owner_display: ownerDisplayByRoster.get(rid) || "",
                 points: typeof pts === "number" ? Math.round(pts * 100) / 100 : pts,
-                players_points: playersPoints,
+                players_points: t.players_points || {},
                 starters: (t.starters || []).map(pid => `${pid} // ${allPlayersData[pid]?.full_name ?? 'defense'}`),
-                players: (t.players || []).map(pid => `${pid} // ${allPlayersData[pid]?.full_name ?? 'defense'}`)
+                players: (t.players || []).map(pid => `${pid} // ${allPlayersData[pid]?.full_name ?? 'defense'}`),
+                avatar_url
               };
             });
             const top = Math.max(...teams.map(x => x.points ?? 0));
@@ -617,6 +662,7 @@
             });
           }
         }
+
         const groupedByWeek = combined.reduce((acc, m) => {
           (acc[m.week] ||= []).push(m);
           return acc;
@@ -624,21 +670,28 @@
         for (const wk in groupedByWeek) {
           groupedByWeek[wk].sort((a,b) => (a.matchup_id ?? 0) - (b.matchup_id ?? 0));
         }
+
         renderWeeks(groupedByWeek, summariesData.summaries);
         els.countPill.textContent = `Matchups: ${combined.length}`;
         els.raw.textContent = JSON.stringify(combined, null, 2);
         els.subtitle.textContent = `Loaded ${combined.length} matchup rows from Week 1 → ${week}.`;
+
         els.downloadJsonBtn.onclick = () => download(
           `sleeper_matchups_${season}_through_w${week}.json`,
           "application/json",
           JSON.stringify(combined, null, 2)
         );
+
         const csvRows = flattenForCsv(combined);
         els.downloadCsvBtn.onclick = () => download(
           `sleeper_matchups_${season}_through_w${week}.csv`,
           "text/csv",
           csvRows.length ? toCSV(csvRows) : ""
         );
+
+        // === COMPUTE AND RENDER LEAGUE RECORDS/STATS FOR CURRENT SEASON ===
+        computeAndRenderLeagueRecords(combined);
+
       } catch (err) {
         console.error(err);
         showError(`<div class="err">Error</div>
@@ -648,6 +701,112 @@
         els.raw.textContent = "[]";
       }
     }
+
+    // Compute stats function for the current season's data
+    function computeAndRenderLeagueRecords(combined) {
+      if (!combined || !combined.length) {
+        document.getElementById('recordsList').innerHTML = "<li>No data available yet.</li>";
+        return;
+      }
+
+      // We'll identify single highest/lowest game scores and best/worst streaks for the current season
+      let allScores = []; // { roster_id, team_name, points, week }
+      // structure for tracking streaks
+      let streakTracker = new Map();
+
+      // Populate arrays
+      for (const m of combined) {
+        const highest = Math.max(...m.teams.map(t => t.points ?? 0));
+        const winners = m.teams.filter(t => (t.points ?? 0) === highest);
+        const tie = winners.length > 1 ? true : false;
+        for (const t of m.teams) {
+          allScores.push({
+            roster_id: t.roster_id,
+            team_name: t.team_name,
+            points: t.points,
+            week: m.week
+          });
+          if (!streakTracker.has(t.roster_id)) {
+            streakTracker.set(t.roster_id, {
+              currentStreak: 0,
+              bestStreak: 0,
+              loseStreak: 0,
+              worstStreak: 0,
+              lastResult: null
+            });
+          }
+          const data = streakTracker.get(t.roster_id);
+          // Determine result
+          let result = 'L';
+          if (tie && winners.map(x=>x.roster_id).includes(t.roster_id)) {
+            result = 'T';
+          } else if (!tie && winners.map(x=>x.roster_id).includes(t.roster_id)) {
+            result = 'W';
+          }
+
+          // Update streak logic
+          if (result === 'W') {
+            if (data.lastResult === 'W') {
+              data.currentStreak += 1;
+            } else {
+              data.currentStreak = 1;
+            }
+            data.bestStreak = Math.max(data.bestStreak, data.currentStreak);
+            data.loseStreak = 0;
+          } else if (result === 'L') {
+            if (data.lastResult === 'L') {
+              data.loseStreak += 1;
+            } else {
+              data.loseStreak = 1;
+            }
+            data.worstStreak = Math.max(data.worstStreak, data.loseStreak);
+            data.currentStreak = 0;
+          } else {
+            data.currentStreak = 0;
+            data.loseStreak = 0;
+          }
+          data.lastResult = result;
+          streakTracker.set(t.roster_id, data);
+        }
+      }
+
+      // Highest single-week game
+      let highestSingle = allScores.reduce((a,b) => b.points > a.points ? b : a, { points: -Infinity });
+      // Lowest single-week game
+      let lowestSingle = allScores.reduce((a,b) => b.points < a.points ? b : a, { points: Infinity });
+
+      // Best and worst streak
+      let bestStreak = { roster_id: 0, team_name: 'N/A', value: 0 };
+      let worstStreak = { roster_id: 0, team_name: 'N/A', value: 0 };
+
+      for (const s of streakTracker.entries()) {
+        const rid = s[0];
+        const stats = s[1];
+        if (stats.bestStreak > bestStreak.value) {
+          bestStreak = {
+            roster_id: rid,
+            team_name: allScores.find(x => x.roster_id===rid)?.team_name || `Roster ${rid}`,
+            value: stats.bestStreak
+          };
+        }
+        if (stats.worstStreak > worstStreak.value) {
+          worstStreak = {
+            roster_id: rid,
+            team_name: allScores.find(x => x.roster_id===rid)?.team_name || `Roster ${rid}`,
+            value: stats.worstStreak
+          };
+        }
+      }
+
+      const recordsList = document.getElementById('recordsList');
+      recordsList.innerHTML = `
+        <li><strong>All-Time High Scorer (Current Season):</strong> ${highestSingle.team_name} with ${fmt(highestSingle.points)} pts (Week ${highestSingle.week || '–'})</li>
+        <li><strong>All-Time Low Scorer (Current Season):</strong> ${lowestSingle.team_name} with ${fmt(lowestSingle.points)} pts (Week ${lowestSingle.week || '–'})</li>
+        <li><strong>Best Winning Streak:</strong> ${bestStreak.team_name} with ${bestStreak.value} consecutive win(s)</li>
+        <li><strong>Worst Losing Streak:</strong> ${worstStreak.team_name} with ${worstStreak.value} consecutive loss(es)</li>
+      `;
+    }
+
     els.themeToggleBtn.addEventListener("click", () => {
       document.documentElement.classList.toggle('light');
     });
