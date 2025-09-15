@@ -512,7 +512,7 @@
             const aStartersHtml = (a.starters || [])
               .map(s => {
                 const [pid, fullName] = s.split(" // ");
-                const name = fullName || "defense";
+                const name = fullName || "Defense";
                 const points = (m.teams.find(x => x.roster_id === a.roster_id)?.players_points || {})[pid] ?? 0;
                 return `<span class="pill">${name} (${fmt(points)} pts)</span>`;
               })
@@ -520,7 +520,7 @@
             const bStartersHtml = (b.starters || [])
               .map(s => {
                 const [pid, fullName] = s.split(" // ");
-                const name = fullName || "defense";
+                const name = fullName || "Defense";
                 const points = (m.teams.find(x => x.roster_id === b.roster_id)?.players_points || {})[pid] ?? 0;
                 return `<span class="pill">${name} (${fmt(points)} pts)</span>`;
               })
@@ -650,8 +650,8 @@
                 owner_display: ownerDisplayByRoster.get(rid) || "",
                 points: typeof pts === "number" ? Math.round(pts * 100) / 100 : pts,
                 players_points: t.players_points || {},
-                starters: (t.starters || []).map(pid => `${pid} // ${allPlayersData[pid]?.full_name ?? 'defense'}`),
-                players: (t.players || []).map(pid => `${pid} // ${allPlayersData[pid]?.full_name ?? 'defense'}`),
+                starters: (t.starters || []).map(pid => `${pid} // ${allPlayersData[pid]?.full_name ?? 'Defense'}`),
+                players: (t.players || []).map(pid => `${pid} // ${allPlayersData[pid]?.full_name ?? 'Defense'}`),
                 avatar_url
               };
             });
