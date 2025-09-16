@@ -515,16 +515,18 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
               .map(s => {
                 const [pid, fullName] = s.split(" // ");
                 const name = fullName || "defense";
+                const pos = allPlayersData[pid]?.position || "UNK";
                 const points = (m.teams.find(x => x.roster_id === a.roster_id)?.players_points || {})[pid] ?? 0;
-                return `<span class="pill">${name} (${fmt(points)} pts)</span>`;
+                return `<span class="pill">${name} (${pos}, ${fmt(points)} pts)</span>`;
               })
               .join(" ");
             const bStartersHtml = (b.starters || [])
               .map(s => {
                 const [pid, fullName] = s.split(" // ");
                 const name = fullName || "defense";
+                const pos = allPlayersData[pid]?.position || "UNK";
                 const points = (m.teams.find(x => x.roster_id === b.roster_id)?.players_points || {})[pid] ?? 0;
-                return `<span class="pill">${name} (${fmt(points)} pts)</span>`;
+                return `<span class="pill">${name} (${pos}, ${fmt(points)} pts)</span>`;
               })
               .join(" ");
 
@@ -584,7 +586,7 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
         const { season, season_type, week } = state || {};
         els.metaPill.textContent = `Season: ${season ?? "—"} · Week: ${week ?? "—"} (${season_type || "—"})`;
 
-        // Only allow fully completed weeks in standings. 
+        // Only allow fully completed weeks in standings.
         // If week=3 is the current/next upcoming week, only weeks 1 & 2 have concluded:
         const concludedWeek = Math.max(0, (week || 0) - 1);
         if (concludedWeek < 1) {
@@ -925,6 +927,11 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
           <strong>TE 🏆 Highest Single-Game:</strong>
           ${bestPlayers.TE.name || '—'} 
           with ${fmt(bestPlayers.TE.points)} pts (Week ${bestPlayers.TE.week || '–'})
+        </li>
+        <li style="font-size:15px; margin-bottom:8px;">
+          <strong>K 🏆 Highest Single-Game:</strong>
+          ${bestPlayers.K.name || '—'}
+          with ${fmt(bestPlayers.K.points)} pts (Week ${bestPlayers.K.week || '–'})
         </li>
       `;
 
