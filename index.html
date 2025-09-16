@@ -584,13 +584,17 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
         const { season, season_type, week } = state || {};
         els.metaPill.textContent = `Season: ${season ?? "—"} · Week: ${week ?? "—"} (${season_type || "—"})`;
 
-        if (!week || week < 1) {
-          els.subtitle.textContent = `NFL season state loaded. Current week returned as ${week}. No regular-season matchups to fetch yet.`;
+        // Only allow fully completed weeks in standings. 
+        // If week=3 is the current/next upcoming week, only weeks 1 & 2 have concluded:
+        const concludedWeek = Math.max(0, (week || 0) - 1);
+        if (concludedWeek < 1) {
+          els.subtitle.textContent = "No concluded weeks found. No standings to display yet.";
           els.raw.textContent = "[]";
           return;
         }
 
-        els.subtitle.textContent = `Fetching matchups for Weeks 1 → ${week}…`;
+        els.subtitle.textContent = `Fetching matchups for Weeks 1 → ${concludedWeek}…`;
+
         const [users, rosters] = await Promise.all([
           fetchJson(`${BASE}/league/${LEAGUE_ID}/users`),
           fetchJson(`${BASE}/league/${LEAGUE_ID}/rosters`)
@@ -607,13 +611,13 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
           nameByRoster.set(rid, teamName);
           ownerDisplayByRoster.set(rid, user?.display_name || user?.username || "Unknown Manager");
           if (user?.avatar) {
-            // Build final avatar URL from user.avatar
             const url = `https://sleepercdn.com/avatars/thumbs/${user.avatar}`;
             rosterToAvatar.set(rid, url);
           }
         }
 
-        const weeks = Array.from({ length: week }, (_, i) => i + 1);
+        // Now fetch only up to concludedWeek instead of all the way to 'week'
+        const weeks = Array.from({ length: concludedWeek }, (_, i) => i + 1);
         const results = [];
         const CONCURRENCY = 4;
         let i = 0;
@@ -680,22 +684,22 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
         renderWeeks(groupedByWeek, summariesData.summaries);
         els.countPill.textContent = `Matchups: ${combined.length}`;
         els.raw.textContent = JSON.stringify(combined, null, 2);
-        els.subtitle.textContent = `Loaded ${combined.length} matchup rows from Week 1 → ${week}.`;
+        els.subtitle.textContent = `Loaded ${combined.length} matchup rows from Week 1 → ${concludedWeek}.`;
 
         els.downloadJsonBtn.onclick = () => download(
-          `sleeper_matchups_${season}_through_w${week}.json`,
+          `sleeper_matchups_${season}_through_w${concludedWeek}.json`,
           "application/json",
           JSON.stringify(combined, null, 2)
         );
 
         const csvRows = flattenForCsv(combined);
         els.downloadCsvBtn.onclick = () => download(
-          `sleeper_matchups_${season}_through_w${week}.csv`,
+          `sleeper_matchups_${season}_through_w${concludedWeek}.csv`,
           "text/csv",
           csvRows.length ? toCSV(csvRows) : ""
         );
 
-        // === COMPUTE AND RENDER LEAGUE RECORDS/STATS FOR CURRENT SEASON ===
+        // === COMPUTE AND RENDER LEAGUE RECORDS/STATS (only for concluded weeks) ===
         computeAndRenderLeagueRecords(combined);
 
       } catch (err) {
@@ -839,7 +843,8 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
         QB:     { pid: null, name: "", position: "QB", points: 0, week: null },
         RB:     { pid: null, name: "", position: "RB", points: 0, week: null },
         WR:     { pid: null, name: "", position: "WR", points: 0, week: null },
-        TE:     { pid: null, name: "", position: "TE", points: 0, week: null }
+        TE:     { pid: null, name: "", position: "TE", points: 0, week: null },
+        K:      { pid: null, name: "", position: "K", points: 0, week: null }
       };
 
       for (const match of combined) {
@@ -1009,7 +1014,6 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
         const getText = (row, sel) => (row.querySelector(sel)?.textContent || "").trim();
 
         if (colType === 'team') {
-          // Alphabetical string compare
           const ta = getText(a, ".team-col").toLowerCase();
           const tb = getText(b, ".team-col").toLowerCase();
           return ta.localeCompare(tb) * (direction === 'asc' ? 1 : -1);
@@ -1018,31 +1022,25 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
           // parse W-L-T
           const recA = getText(a, ".record-col").split("-").map(Number);
           const recB = getText(b, ".record-col").split("-").map(Number);
-          // We'll primarily sort by W, then by T, then by L
-          // so that 5-1-0 outranks 4-2-0, etc.
-          // We'll combine them in a single numeric measure W*1000 + T, or do a direct compare
+          // We'll primarily sort by W, then T, then L
           const [wA, lA, tA] = recA;
           const [wB, lB, tB] = recB;
-          // function that returns a measure:
-          // the bigger the measure, the better the record
-          const measureA = wA * 1000 + tA * 10 - lA; 
+          // bigger measure => better record
+          const measureA = wA * 1000 + tA * 10 - lA;
           const measureB = wB * 1000 + tB * 10 - lB;
           return (measureA - measureB) * (direction === 'asc' ? 1 : -1);
         }
         else if (colType === 'pf') {
-          // numeric parse
           const pfA = parseFloat(getText(a, ".pf-col") || "0");
           const pfB = parseFloat(getText(b, ".pf-col") || "0");
           return (pfA - pfB) * (direction === 'asc' ? 1 : -1);
         }
         else if (colType === 'pa') {
-          // numeric parse
           const paA = parseFloat(getText(a, ".pa-col") || "0");
           const paB = parseFloat(getText(b, ".pa-col") || "0");
           return (paA - paB) * (direction === 'asc' ? 1 : -1);
         }
         else if (colType === 'playoff') {
-          // alphabetical
           const playA = getText(a, ".playoffs-col").toLowerCase();
           const playB = getText(b, ".playoffs-col").toLowerCase();
           return playA.localeCompare(playB) * (direction === 'asc' ? 1 : -1);
