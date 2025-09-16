@@ -180,42 +180,7 @@
     }
     .wk {
       padding: 10px 12px;
-      overflow-x: auto;
       -webkit-overflow-scrolling: touch;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 600px;
-    }
-    th,td {
-      padding: 8px 10px;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top
-    }
-    th {
-      color: var(--muted);
-      font-weight: 700;
-      text-align: left;
-      position: sticky;
-      top: 0;
-      background: var(--panel);
-      z-index: 1;
-      cursor: pointer; /* We'll allow clicking for sorting */
-    }
-    .team {
-      display: flex;
-      gap: 8px;
-      align-items: center
-    }
-    .pts {
-      font-weight: 800
-    }
-    .win {
-      color: var(--ok)
-    }
-    .tie {
-      color: var(--warn)
     }
     .err {
       color: var(--danger);
@@ -235,50 +200,16 @@
     .mono {
       font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace
     }
-    .matchup-row {
-      cursor: pointer
-    }
-    .matchup-summary {
-      background: rgba(255,255,255,0.02)
-    }
+    /* The existing "matchup-row" and "matchup-summary" classes won't apply here
+       since we're changing the matchups to be in <details> blocks. 
+       We'll keep them just unused to avoid altering other code references. */
+    .matchup-row {}
+    .matchup-summary {}
 
-    /* Responsive stacking for matchup cards on mobile */
+    /* Mobile responsiveness for the stack layout */
     @media (max-width: 768px) {
-      .wk table {
-        display: block;
-        width: 100%;
-        border-collapse: separate;
-        min-width: auto !important;
-        overflow-x: visible;
-      }
-      .wk table thead {
-        display: none;
-      }
-      .wk table tbody {
-        display: block;
-        width: 100%;
-      }
-      .wk table tbody tr {
-        display: block;
-        width: 100%;
-        margin-bottom: 16px;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 8px;
-      }
-      .wk table tbody tr td {
-        display: block;
-        width: 100%;
-        margin-bottom: 8px;
-      }
-      /* Show the hidden summary row in full block form as well */
-      .wk table tbody tr.matchup-summary {
-        display: block !important;
-        margin-top: -8px;
-      }
-      .wk table tbody tr.matchup-summary td {
-        display: block;
-        width: 100%;
+      .wk {
+        padding: 10px 8px;
       }
     }
   </style>
@@ -473,106 +404,93 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
       return `<img src="${url}" alt="${teamName} avatar" style="width:20px; height:20px; border-radius:50%; margin-right:4px;">${teamName}`;
     }
 
+    // Renders the matchups so each week is in a <details> block,
+    // and within each week, each matchup is *also* in a collapsed <details> block.
     function renderWeeks(grouped, allSummaries) {
       els.weeksContainer.innerHTML = "";
       const weeks = Object.keys(grouped).map(n => Number(n)).sort((a,b) => a-b);
       weeks.forEach(week => {
         const list = grouped[week];
-        const details = document.createElement("details");
-        details.open = false;
+        const weekDetails = document.createElement("details");
+        weekDetails.open = false;
         const summary = document.createElement("summary");
         summary.innerHTML = `Week ${week} — ${list.length} matchup${list.length !== 1 ? "s" : ""}`;
-        details.appendChild(summary);
-        const wrapper = document.createElement("div");
-        wrapper.className = "wk";
-        const table = document.createElement("table");
-        table.style.overflow = 'auto';
-        table.style.maxHeight = '300px';
-        table.style.width = '100%';
-        const thead = document.createElement("thead");
-        thead.style.overflow = 'auto';
-        thead.style.maxHeight = '300px';
-        thead.style.width = '100%';
-        thead.innerHTML = `
-          <tr>
-            <th>Matchup</th>
-            <th>Team A</th>
-            <th>Pts</th>
-            <th>Team B</th>
-            <th>Pts</th>
-            <th>Winner</th>
-          </tr>`;
-        table.appendChild(thead);
-        const tbody = document.createElement("tbody");
-        tbody.style.overflow = 'auto';
-        tbody.style.maxHeight = '300px';
-        tbody.style.width = '100%';
+        weekDetails.appendChild(summary);
+
+        const container = document.createElement("div");
+        container.className = "wk";
 
         for (const m of list) {
           const teams = [...m.teams].sort((a,b) => a.roster_id - b.roster_id);
-          const a = teams[0], b = teams[1];
-          const moreTeams = teams.length > 2;
           const highest = Math.max(...teams.map(t => t.points ?? 0));
           const winners = teams.filter(t => (t.points ?? 0) === highest);
           const isTie = winners.length > 1;
+          const moreTeams = teams.length > 2;
 
-          const tr = document.createElement("tr");
-          tr.style.overflow = 'auto';
-          tr.style.maxHeight = '300px';
-          tr.style.width = '100%';
-          tr.classList.add("matchup-row");
-          tr.onclick = function() {
-            const nextRow = tr.nextElementSibling;
-            if (nextRow && nextRow.classList.contains("matchup-summary")) {
-              nextRow.style.display = nextRow.style.display === "table-row" ? "none" : "table-row";
+          const matchDetails = document.createElement("details");
+          matchDetails.open = false;
+
+          // Build the clickable summary text for the matchup:
+          const scoreboardSummary = (() => {
+            if (moreTeams) {
+              // e.g. "Matchup #2 (3+ teams) - top score: X pts"
+              return `
+                Matchup #${m.matchup_id} (multi-team, ${teams.length} total) 
+                ${isTie ? `<span class="tie">Tie (${fmt(highest)})</span>` 
+                        : `Winner: <span class="win">${winners[0]?.team_name || "—"}</span> (${fmt(highest)})`}
+              `;
+            } else {
+              // Just 2 teams
+              const a = teams[0], b = teams[1];
+              const winnerText = isTie
+                ? `<span class="tie">Tie (${fmt(highest)})</span>`
+                : `<span class="win">${winners[0]?.team_name || "—"}</span>`;
+              return `
+                Matchup #${m.matchup_id} — 
+                ${avatarAndName(a?.roster_id, a?.team_name || "—")} (${fmt(a?.points)}) 
+                vs 
+                ${avatarAndName(b?.roster_id, b?.team_name || "—")} (${fmt(b?.points)}) 
+                | ${winnerText}
+              `;
             }
-          };
+          })();
 
-          const winnerText = isTie
-            ? `<span class="tie">Tie (${fmt(highest)})</span>`
-            : `<span class="win">${winners[0]?.team_name || "—"}</span>`;
+          const summaryTag = document.createElement("summary");
+          summaryTag.innerHTML = scoreboardSummary;
+          matchDetails.appendChild(summaryTag);
 
-          tr.innerHTML = `
-            <td class="mono">#${m.matchup_id}</td>
-            <td class="team">${avatarAndName(a?.roster_id, a?.team_name || "—")}<br><small class="muted">${a?.owner_display ?? ""}</small></td>
-            <td class="pts">${a ? fmt(a.points) : "—"}</td>
-            <td class="team">${avatarAndName(b?.roster_id, b ? b.team_name : (moreTeams ? "(3+ team matchup)" : "—"))}
-              <br><small class="muted">${b?.owner_display ?? ""}</small>
-            </td>
-            <td class="pts">${b ? fmt(b.points) : (moreTeams ? "—" : "—")}</td>
-            <td>${winnerText}</td>
-          `;
+          // Now the hidden details content:
+          const detailDiv = document.createElement("div");
+          detailDiv.style.marginTop = "8px";
+          const summaryText = allSummaries?.[week]?.[m.matchup_id] || "No matchup summary provided.";
+          let detailHTML = `<p style="margin:8px 0;">${summaryText}</p>`;
 
-          const summaryRow = document.createElement("tr");
-          summaryRow.classList.add("matchup-summary");
-          summaryRow.style.display = "none";
-          const summaryCell = document.createElement("td");
-          summaryCell.colSpan = 6;
-          const summaryText = allSummaries?.[week]?.[m.matchup_id] || "Placeholder matchup summary text goes here.";
-
-          if (!moreTeams) {
+          if (moreTeams) {
+            // Multi-team display: list all teams and scores
+            const listing = teams.map(t => `${avatarAndName(t.roster_id, t.team_name)} (${fmt(t.points)})`).join(" &bull; ");
+            detailHTML += `<div><strong>All Teams:</strong> ${listing}</div>`;
+          } else {
+            // Just 2 teams. Show starters
+            const a = teams[0], b = teams[1];
             const aStartersHtml = (a.starters || [])
               .map(s => {
                 const [pid, fullName] = s.split(" // ");
-                const name = fullName || "defense";
                 const pos = allPlayersData[pid]?.position || "UNK";
-                const points = (m.teams.find(x => x.roster_id === a.roster_id)?.players_points || {})[pid] ?? 0;
-                return `<span class="pill">${name} (${pos}, ${fmt(points)} pts)</span>`;
+                const points = a.players_points?.[pid] ?? 0;
+                return `<span class="pill">${fullName || "defense"} (${pos}, ${fmt(points)} pts)</span>`;
               })
               .join(" ");
             const bStartersHtml = (b.starters || [])
               .map(s => {
                 const [pid, fullName] = s.split(" // ");
-                const name = fullName || "defense";
                 const pos = allPlayersData[pid]?.position || "UNK";
-                const points = (m.teams.find(x => x.roster_id === b.roster_id)?.players_points || {})[pid] ?? 0;
-                return `<span class="pill">${name} (${pos}, ${fmt(points)} pts)</span>`;
+                const points = b.players_points?.[pid] ?? 0;
+                return `<span class="pill">${fullName || "defense"} (${pos}, ${fmt(points)} pts)</span>`;
               })
               .join(" ");
 
-            // Use avatarAndName helper in summary row too
-            const matchupDetailHTML = `
-              <div style="margin-top:8px; display:flex; gap:16px;">
+            detailHTML += `
+              <div style="margin-top:8px; display:flex; gap:16px; flex-wrap:wrap;">
                 <div style="flex:1; min-width:0;">
                   <strong>${avatarAndName(a.roster_id, a.team_name)} Starters</strong>
                   <div style="margin:6px 0; display:flex; flex-wrap:wrap; gap:4px;">
@@ -587,31 +505,15 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
                 </div>
               </div>
             `;
-            summaryCell.innerHTML = `
-              <p style="margin:8px 0;">${summaryText}</p>
-              ${matchupDetailHTML}
-            `;
-          } else {
-            summaryCell.innerHTML = `<p style="margin:8px 0;">${summaryText}</p>`;
           }
-          summaryRow.appendChild(summaryCell);
-          tbody.appendChild(tr);
 
-          if (moreTeams) {
-            const tr2 = document.createElement("tr");
-            const col = document.createElement("td");
-            col.colSpan = 6;
-            const items = teams.map(t => `${t.team_name} (${fmt(t.points)})`).join(" · ");
-            col.innerHTML = `<small>Multi-team matchup: ${items}</small>`;
-            tr2.appendChild(col);
-            tbody.appendChild(tr2);
-          }
-          tbody.appendChild(summaryRow);
+          detailDiv.innerHTML = detailHTML;
+          matchDetails.appendChild(detailDiv);
+          container.appendChild(matchDetails);
         }
-        table.appendChild(tbody);
-        wrapper.appendChild(table);
-        details.appendChild(wrapper);
-        els.weeksContainer.appendChild(details);
+
+        weekDetails.appendChild(container);
+        els.weeksContainer.appendChild(weekDetails);
       });
     }
 
@@ -764,10 +666,7 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
       // 1) TEAM RECORDS
       let allScores = []; // { roster_id, team_name, points, week }
       let streakTracker = new Map();
-
-      // We'll also need PF (Points For) and PA (Points Against) for standings
-      // standingsMap: { [roster_id]: { w:0, l:0, t:0, pf:0, pa:0, team_name: string } }
-      let standingsMap = new Map();
+      let standingsMap = new Map(); // { [roster_id]: { w:0, l:0, t:0, pf:0, pa:0, team_name:string } }
 
       for (const m of combined) {
         const highest = Math.max(...m.teams.map(t => t.points ?? 0));
@@ -860,9 +759,7 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
       let bestStreak = { roster_id: 0, team_name: 'N/A', value: 0 };
       let worstStreak = { roster_id: 0, team_name: 'N/A', value: 0 };
 
-      for (const s of streakTracker.entries()) {
-        const rid = s[0];
-        const stats = s[1];
+      for (const [rid, stats] of streakTracker.entries()) {
         if (stats.bestStreak > bestStreak.value) {
           bestStreak = {
             roster_id: rid,
@@ -896,7 +793,7 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
             const [pid, fullName] = s.split(" // ");
             const pts = (team.players_points || {})[pid] ?? 0;
             const player = allPlayersData[pid];
-            if (!player) continue; 
+            if (!player) continue;
             const pos = player.position || "UNK";
             if (pts > bestPlayers.overall.points) {
               bestPlayers.overall = {
@@ -975,9 +872,9 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
         </li>
       `;
 
-      // Standings Collapsible
+      // Build a collapsible for the standings table
       const standingsDetails = document.createElement("details");
-      standingsDetails.open = false; // collapsed by default
+      standingsDetails.open = false;
       const standingsSummary = document.createElement("summary");
       standingsSummary.textContent = "Standings";
       standingsDetails.appendChild(standingsSummary);
@@ -993,7 +890,6 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
       const totalTeams = allTeams.length;
       const cutoff = totalTeams > 6 ? 6 : Math.round(totalTeams / 2);
 
-      // Build a small table for the standings
       const standingsDiv = document.createElement("div");
       standingsDiv.style.marginTop = "10px";
 
@@ -1028,7 +924,6 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
       `;
       standingsDiv.innerHTML = tableHtml;
       standingsDetails.appendChild(standingsDiv);
-
       document.getElementById("recordsList").appendChild(standingsDetails);
 
       // Attach sorting to each column header
@@ -1042,22 +937,19 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
       });
     }
 
-    // Keep track of sorted states (asc/desc) for columns
+    // Track sorted states
     const standingsSortState = {};
 
-    // Sort logic
     function sortStandings(table, colType, thElement) {
-      // Toggle ascending/descending
       if (!standingsSortState[colType]) {
         standingsSortState[colType] = 'asc';
       } else {
         standingsSortState[colType] = standingsSortState[colType] === 'asc' ? 'desc' : 'asc';
       }
-
       const direction = standingsSortState[colType];
       const rows = Array.from(table.querySelectorAll("tbody tr"));
-      
-      rows.sort((a, b) => {
+
+      rows.sort((a,b) => {
         const getText = (row, sel) => (row.querySelector(sel)?.textContent || "").trim();
 
         if (colType === 'team') {
@@ -1069,10 +961,8 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
           // parse W-L-T
           const recA = getText(a, ".record-col").split("-").map(Number);
           const recB = getText(b, ".record-col").split("-").map(Number);
-          // We'll primarily sort by W, then T, then L
           const [wA, lA, tA] = recA;
           const [wB, lB, tB] = recB;
-          // bigger measure => better record
           const measureA = wA * 1000 + tA * 10 - lA;
           const measureB = wB * 1000 + tB * 10 - lB;
           return (measureA - measureB) * (direction === 'asc' ? 1 : -1);
@@ -1095,7 +985,6 @@ Well, folks, in Week 2 of this tire-fire 2025 NFL season, the Lions absolutely c
         return 0;
       });
 
-      // Re-append the sorted rows
       const tbody = table.querySelector("tbody");
       rows.forEach(r => tbody.appendChild(r));
     }
