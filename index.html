@@ -241,6 +241,46 @@
     .matchup-summary {
       background: rgba(255,255,255,0.02)
     }
+
+    /* Responsive stacking for matchup cards on mobile */
+    @media (max-width: 768px) {
+      .wk table {
+        display: block;
+        width: 100%;
+        border-collapse: separate;
+        min-width: auto !important;
+        overflow-x: visible;
+      }
+      .wk table thead {
+        display: none;
+      }
+      .wk table tbody {
+        display: block;
+        width: 100%;
+      }
+      .wk table tbody tr {
+        display: block;
+        width: 100%;
+        margin-bottom: 16px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 8px;
+      }
+      .wk table tbody tr td {
+        display: block;
+        width: 100%;
+        margin-bottom: 8px;
+      }
+      /* Show the hidden summary row in full block form as well */
+      .wk table tbody tr.matchup-summary {
+        display: block !important;
+        margin-top: -8px;
+      }
+      .wk table tbody tr.matchup-summary td {
+        display: block;
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
