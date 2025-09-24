@@ -1,4 +1,4 @@
-f<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -993,6 +993,19 @@ Folks, Week 3 was a shitshow where the Bears finally grew a pair and Caleb Willi
     });
     els.refreshBtn.addEventListener("click", load);
     load();
+
+    // =========================
+    // Randomized Audio Start
+    // =========================
+    const audio = document.querySelector('.audio-player audio');
+    // Times in seconds for each desired song start:
+    const timestamps = [0, 34, 201, 279, 335, 401, 536, 618, 716];
+
+    audio.addEventListener('play', function() {
+      // When play is clicked (or unpaused), jump to a random timestamp
+      const randIndex = Math.floor(Math.random() * timestamps.length);
+      audio.currentTime = timestamps[randIndex];
+    });
   })();
   </script>
 </body>
